@@ -1,10 +1,10 @@
 
 LogToConsole("▶ Script codeScript2 dimulai (loop panjang)...")
 
-for i = 1, 20 do
+for i = 1, 200 do
     StopCheck() -- cek apakah disuruh stop
     LogToConsole("🌱 Farming step " .. i)
-    Sleep(1000)
+    Sleep(5000)
 end
 
 LogToConsole("✅ Script codeScript2 selesai.")

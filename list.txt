@@ -2,3 +2,5 @@ codeScript1
 codeScript1contoh
 contohcode1
 kit
+nostop
+stop

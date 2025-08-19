@@ -6,5 +6,5 @@ for i = 1, 200 do
     addLog("🌱 Farming step " .. i)
     Sleep(5000)
 end
-
+StopCheck()
 LogToConsole("✅ Script codeScript2 selesai.")

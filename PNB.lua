@@ -771,3 +771,6 @@ ImGui.Text("Status: " .. (runningPNB and ("Running @" .. (world_name)) or "Idle"
         ImGui.End()
     end
 end)
+
+
+StopCheck()

@@ -526,11 +526,11 @@ function telefind()
     end
     if foundit then
       overlayText("`4Telephone not found")
-      addLog("`4Telephone not found")
+      addLog("Telephone not found")
       Sleep(100)
     else
       overlayText("`5Telephone found at: X "..teleposx.." Y "..teleposy)
-      addLog("`5Telephone found at: X "..teleposx.." Y "..teleposy)
+      addLog("Telephone found at: X "..teleposx.." Y "..teleposy)
       Sleep(100)
     end
 end
@@ -556,6 +556,7 @@ else
 end
 sSendPacket(2, "action|wrench\n|netid|"..netid);Sleep(200)
 function pnbmain()
+    StopCheck()
   if MagplantManager.rept or not yok then
         if not cheats then
         cheat(false);Sleep(1000)
@@ -577,7 +578,7 @@ function pnbmain()
         MagplantManager:resetAndUpdate()
         MagplantManager:takeMagplant()
         overlayText("Inside stocks: `2"..stocks.."`0. `5Magplant: ("..aMPu.."/"..aMP..")")
-        addLog("Inside stocks: `2"..stocks.."`0. `5Magplant: ("..aMPu.."/"..aMP..")")
+        addLog("Inside stocks: "..stocks..". Magplant: ("..aMPu.."/"..aMP..")")
      end
     if MagplantManager.mgh then
         Sleep(1000)
@@ -647,7 +648,7 @@ function pnbmain()
           cheats = true
         end
         overlayText("Buying arroz at: `5X "..aVposX.." Y "..aVposY)
-        addLog("Buying arroz at: `5X "..aVposX.." Y "..aVposY)
+        addLog("Buying arroz at: X "..aVposX.." Y "..aVposY)
         server(nil, nil, nil, aVposX, aVposY)
         server(3, arah, 32, aVposX, aVposY)
         Sleep(1000)
@@ -670,7 +671,7 @@ function pnbmain()
           cheats = true
         end
         overlayText("Buying clover at: `5X "..cVposX.." Y "..cVposY)
-        addLog("Buying clover at: `5X "..cVposX.." Y "..cVposY)
+        addLog("Buying clover at: X "..cVposX.." Y "..cVposY)
         server(nil, nil, nil, cVposX, cVposY)
         server(3, arah, 32, cVposX, cVposY)
         Sleep(1000)
@@ -683,7 +684,7 @@ function pnbmain()
       end
     end
     overlayText("`5Magplant: "..aMPu.."/"..aMP..". `9Arroz`0/`2Clover`0(`9"..arrozz.."`0|`2"..cloverr.."`0). `5[`s"..blackz.."Black`0|`e"..blueg.."bgl`0|`1"..diaml.."dl`5]")
-    addLog("`5Magplant: "..aMPu.."/"..aMP..". `9Arroz`0/`2Clover`0(`9"..arrozz.."`0|`2"..cloverr.."`0). `5[`s"..blackz.."Black`0|`e"..blueg.."bgl`0|`1"..diaml.."dl`5]")
+    addLog("Magplant: "..aMPu.."/"..aMP..". Arroz/Clover("..arrozz.."|"..cloverr.."). ["..blackz.."Black|"..blueg.."bgl|"..diaml.."dl]")
   end
   
   if R2delay(50) then
@@ -764,8 +765,7 @@ AddHook("OnDraw", "PNB_GUI", function()
         else
             if ImGui.Button("⏹ Stop PNB") then StopPNB() end
         end
-
-        ImGui.Text("Status: " .. (runningPNB and ("Running @" .. (world_name())) or "Idle"))
+ImGui.Text("Status: " .. (runningPNB and ("Running @" .. (world_name)) or "Idle"))
 
         ImGui.Separator()
         ImGui.End()

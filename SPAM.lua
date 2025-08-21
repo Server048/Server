@@ -105,6 +105,7 @@ function StopSpam()
     return
   end
   statusText = "Stopping..."
+  _G.shouldStop = true
   -- lempar STOP agar pcall cleanup eksekusi
   error("STOP_REQUESTED")
 end
@@ -150,9 +151,7 @@ AddHook("OnDraw", HOOK_NAME, function()
       ImGui.SameLine()
       if ImGui.Button("Tutup GUI") then _G.spamShow = false end
     else
-      if ImGui.Button("⏹ Stop Spam") then
-          StopSpam()
-        pcall(function() error("STOP_REQUESTED") end)
+      if ImGui.Button("⏹ Stop Spam") then StopSpam() end
       end
       ImGui.SameLine()
       ImGui.BeginDisabled(true)

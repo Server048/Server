@@ -107,7 +107,7 @@ function StopSpam()
   statusText = "Stopping..."
   _G.shouldStop = true
   -- lempar STOP agar pcall cleanup eksekusi
-  error("STOP_REQUESTED")
+  
 end
 
 -- handler untuk HUB

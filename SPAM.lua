@@ -18,7 +18,7 @@ local spamDelay = 5000 -- ms
 local function spamLoop()
     while not shouldStop do
         StopCheck()
-        if shouldStop then break end
+        
         if runningSpam then
             SendPacket(2, "action|input\n|text|" .. spamText)
       addLog("[SPAM] >> " .. spamText)
@@ -27,7 +27,7 @@ local function spamLoop()
             Sleep(100)
         end
     end
-    showSpamWindow = false
+    showWindow = false
     addLog(" Script dihentikan total.")
 end
 
@@ -58,7 +58,7 @@ RunThread(spamLoop)
 -- ============ GUI (IMGUI PANEL) =================
 ----------------------------------------------------
 AddHook("OnDraw", "SPAM_GUI", function()
-    if not showSpamWindow then return end
+    if not showWindow then return end
 
     if ImGui.Begin("Spam Controller") then
         ImGui.Text("Pengaturan Spam")

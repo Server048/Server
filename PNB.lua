@@ -1,7 +1,3 @@
--- =========================
--- PNB Controller - FINAL (Full merge)
--- Pola sama dengan Spam Controller (HUB-aware)
--- =========================
 
 ----------------------------------------------------
 -- ============ KONFIGURASI DASAR ================ --
@@ -35,12 +31,10 @@ local teleID       = 3898
 ----------------------------------------------------
 _G.shouldStop      = _G.shouldStop or false
 _G.hubForceCloseUI = _G.hubForceCloseUI or false
-
--- PNB state (shared agar bisa dilihat HUB/GUI)
 _G.pnbShow    = (_G.pnbShow ~= nil) and _G.pnbShow or true
 _G.pnbRunning = _G.pnbRunning or false
 
--- ScriptBus minimal (kalau HUB belum menyediakan)
+
 if not _G.ScriptBus then
   _G.ScriptBus = {
     _map = {},
@@ -65,7 +59,7 @@ local function wtrmk(msg); LogToConsole("`0[`cPNB`0] **`w " .. msg); end
 local function overlayText(text); SendVariantList({[0]="OnTextOverlay",[1]="`0[`cPNB`0]`w "..text}); end
 
 ------------------------------------------------------------
--- StopCheck: pakai HUB jika ada, fallback aman
+-- StopCheck: Api Hub Stop Script
 ------------------------------------------------------------
 local function StopCheck()
   if _G.StopCheck then
@@ -158,7 +152,7 @@ local teleposx, teleposy = nil, nil
 local Scans, yok, stp, jtw, prog, findit, ceki, modes = true, false, false, false, false, true, true, true
 local totalElapsed, timeString, M_E_T, Days, cycel_time, stocks = 0, nil, 24 * 60 * 60 * 1000, 0, 0, 0
 
--- akan diisi saat StartPNB
+
 local world_name = ""
 local netid = 0
 
@@ -509,7 +503,7 @@ end
 -- ============ PNB MAIN LOOP ===================== --
 ----------------------------------------------------
 local function pnbmain()
-  StopCheck()  -- patuh HUB bila stop global
+  StopCheck() 
 
   if MagplantManager.rept or not yok then
     if not cheats then cheat(0); Sleep(1000); cheats = true end
@@ -705,7 +699,7 @@ end
 ------------------------------------------------------------
 local function HubStopHandler(forceClose)
   if _G.pnbRunning then statusText = "Stopping..." end
-  _G.shouldStop = true           -- sinyal global (HUB)
+  _G.shouldStop = true           
   _G.pnbRunning = false
   pcall(function() cheat(0) end)
   if forceClose then
@@ -723,14 +717,8 @@ _G.ScriptBus:register("pnb", {
   close_ui = HubCloseUIHandler
 })
 
-------------------------------------------------------------
--- ============ (OPSIONAL) GUI CONTOH MINIMAL =============
--- Kamu boleh pakai GUI kamu sendiri. Ini contoh pola benar.
-------------------------------------------------------------
+
 local HOOK_NAME = "PNB_GUI_Controller"
-------------------------------------------------------------
--- PNB Controller GUI (Gabungan Mini + Settings)
-------------------------------------------------------------
 AddHook("OnDraw", HOOK_NAME, function()
   if _G.hubForceCloseUI then return end
   if not _G.pnbShow then return end
@@ -742,7 +730,7 @@ AddHook("OnDraw", HOOK_NAME, function()
       -- TAB MAIN
       ------------------------------------------------
       if ImGui.BeginTabItem("Main Settings") then
-        ImGui.Text("⚙️ Pengaturan PNB")
+        ImGui.Text("Pengaturan PNB")
 
         if not _G.pnbRunning then
           if ImGui.Button("▶ Start PNB") then RunThread(StartPNB) end

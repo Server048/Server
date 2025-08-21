@@ -31,7 +31,7 @@ local statusText  = "Idle"
 local function StopCheck()
   if _G.StopCheck then
     _G.StopCheck() -- gunakan versi HUB
-  else
+  --else
    -- if _G.shouldStop then error("STOP_REQUESTED")
   --  end
   end

@@ -744,6 +744,16 @@ end
 AddHook("OnDraw", "PNB_Settings", function()
     if ImGui.Begin("PNB Controller") then
         ImGui.Text("🌍 World & Position Settings")
+            ImGui.Separator()
+        if not runningPNB then
+            if ImGui.Button("▶ Start PNB") then StartPNB() end
+        else
+            if ImGui.Button("⏹ Stop PNB") then StopPNB() end
+        end
+
+        ImGui.Text("Status: " .. (runningPNB and ("Running @" .. (world_name)) or "Idle"))
+
+        ImGui.Separator()
         ImGui.Text(" Posisi Awal")
         _, Posisi_x = ImGui.InputInt("Posisi X", Posisi_x)
         _, Posisi_y = ImGui.InputInt("Posisi Y", Posisi_y)

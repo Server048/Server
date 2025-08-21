@@ -60,9 +60,6 @@ end
 local pnbThread  = nil
 local statusText = "Idle"
 
-local function addLog(m)
-  if LogToConsole then LogToConsole("PNB> "..m) else print("PNB> "..m) end
-end
 
 local function wtrmk(msg); LogToConsole("`0[`cPNB`0] **`w " .. msg); end
 local function overlayText(text); SendVariantList({[0]="OnTextOverlay",[1]="`0[`cPNB`0]`w "..text}); end
@@ -272,7 +269,7 @@ end
 
 function MagplantManager:takeMagplant()
   if self.mgh then
-    Sleep(900)
+    Sleep(10000)
     sSendPacket(2, "action|input\n|text|/ghost", world_name)
     self.mgh = false
   end
@@ -533,7 +530,7 @@ local function pnbmain()
   end
 
   if MagplantManager.mgh then
-    Sleep(1000)
+    Sleep(10000)
     sSendPacket(2, "action|input\n|text|/ghost", world_name)
     MagplantManager.mgh = false
   end
@@ -639,7 +636,7 @@ function StartPNB()
   cheat(0); Sleep(500)
   cheats = true
 
-  sSendPacket(2, "action|input\n|text|/ghost", world_name); Sleep(300)
+  sSendPacket(2, "action|input\n|text|/ghost", world_name); Sleep(3000)
   if MagplantManager.mgh then
     sSendPacket(2, "action|input\n|text|/ghost", world_name)
     MagplantManager.mgh = false
@@ -649,7 +646,7 @@ function StartPNB()
     FindPath(Posisi_x, Posisi_y, 700)
   end
 
-  sSendPacket(2, "action|wrench\n|netid|"..tostring(netid), world_name); Sleep(200)
+  sSendPacket(2, "action|wrench\n|netid|"..tostring(netid), world_name); Sleep(2000)
 
   _G.pnbRunning = true
   _G.pnbShow    = true
@@ -752,7 +749,7 @@ AddHook("OnDraw", HOOK_NAME, function()
           ImGui.SameLine()
           if ImGui.Button("Tutup GUI") then ClosePNB() end
         else
-          if ImGui.Button("⏹ Stop PNB (hanya loop)") then StopPNB() end
+          if ImGui.Button("⏹ Stop PNB ") then StopPNB() end
           ImGui.SameLine()
           ImGui.BeginDisabled(true); ImGui.Button("Tutup GUI"); ImGui.EndDisabled()
         end
@@ -762,6 +759,8 @@ AddHook("OnDraw", HOOK_NAME, function()
           sycroneC()
           addLog("🔄 Settingan diperbarui dari GUI")
         end
+          ImGui.SameLine()
+         _, world_name = ImGui.InputText("World", world_name, 8)
 
         ImGui.Separator()
         ImGui.Text("Toggle Opsi:")

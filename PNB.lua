@@ -752,8 +752,14 @@ AddHook("OnDraw", "PNB_Settings", function()
         end
 
         ImGui.Text("Status: " .. (runningPNB and ("Running @" .. (world_name)) or "Idle"))
-
+ImGui.Separator()
+        -- 🔘 BUTTON UNTUK UPDATE KONFIG KE SISTEM
+        if ImGui.Button("✅ Set Settings") then
+            sycroneC()  
+            addLog("🔄 Settingan diperbarui dari GUI")
+            end
         ImGui.Separator()
+            
         ImGui.Text(" Posisi Awal")
         _, Posisi_x = ImGui.InputInt("Posisi X", Posisi_x)
         _, Posisi_y = ImGui.InputInt("Posisi Y", Posisi_y)

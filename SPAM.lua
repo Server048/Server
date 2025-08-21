@@ -1,22 +1,11 @@
-------------------------------------------------------------
--- Spam Controller (Gabungan)
--- - Start/Stop via GUI Spam
--- - Stop via HUB (terminate semua script)
--- - Patuh StopCheck() milik HUB
--- - ScriptBus support (stop_all / close_all_ui)
-------------------------------------------------------------
 
------------------------------
--- 1) GLOBAL FLAGS (shared) --
------------------------------
-_G.shouldStop       = _G.shouldStop or false      -- Hub set true utk terminate semua
-_G.hubForceCloseUI  = _G.hubForceCloseUI or false -- Hub bisa paksa tutup UI
+
+_G.shouldStop       = _G.shouldStop or false      
+_G.hubForceCloseUI  = _G.hubForceCloseUI or false
 _G.spamShow         = (_G.spamShow ~= nil) and _G.spamShow or true
 _G.spamRunning      = _G.spamRunning or false
 
------------------------------
--- 2) STATE SPAM SCRIPT -----
------------------------------
+
 local HOOK_NAME   = "SpamGUI_Controller"
 local spamThread  = nil
 local spamText    = "Hello World!"
@@ -24,22 +13,16 @@ local spamDelay   = 2000
 local statusText  = "Idle"
 
 
-
-------------------------------------------------------------
--- 3) StopCheck fallback (pakai HUB jika ada)
-------------------------------------------------------------
 local function StopCheck()
   if _G.StopCheck then
-    _G.StopCheck() -- gunakan versi HUB
+    _G.StopCheck()
   else
     if _G.shouldStop then error("STOP_REQUESTED")
      end
   end
 end
 
-------------------------------------------------------------
--- 4) ScriptBus Registrasi (biar HUB bisa control)
-------------------------------------------------------------
+
 if not _G.ScriptBus then
   _G.ScriptBus = {
     _map = {},
@@ -53,9 +36,6 @@ if not _G.ScriptBus then
   }
 end
 
-------------------------------------------------------------
--- 5) START / STOP
-------------------------------------------------------------
 function StartSpam()
   if _G.spamRunning then
     addLog("⚠ Spam sudah berjalan.")
@@ -82,7 +62,7 @@ function StartSpam()
     _G.spamRunning = false
     statusText = "Idle"
 
-    -- jika HUB terminate → GUI auto close
+    
     if _G.shouldStop or _G.hubForceCloseUI then
       _G.spamShow = false
     end
@@ -106,11 +86,9 @@ function StopSpam()
     return
   end
   addLog("Tidak ada spam yang berjalan.")
-  -- lempar STOP agar pcall cleanup eksekusi
   
 end
 
--- handler untuk HUB
 local function HubStopHandler(forceClose)
   if _G.spamRunning then statusText = "Stopping..." end
   _G.shouldStop = true
@@ -128,9 +106,7 @@ _G.ScriptBus:register("spam", {
   close_ui = HubCloseUIHandler
 })
 
-------------------------------------------------------------
--- 6) GUI IMGUI
-------------------------------------------------------------
+
 AddHook("OnDraw", HOOK_NAME, function()
   if _G.hubForceCloseUI then return end
   if not _G.spamShow then return end
@@ -164,9 +140,7 @@ AddHook("OnDraw", HOOK_NAME, function()
   end
 end)
 
-------------------------------------------------------------
--- 7) Listener HUB STOP
-------------------------------------------------------------
+
 RunThread(function()
   local lastStop = _G.shouldStop
   while true do

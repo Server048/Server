@@ -739,36 +739,77 @@ local function StopPNB()
 end
 
 ----------------------------------------------------
--- ============ GUI (IMGUI PANEL) ================= --
+-- ============ GUI (IMGUI SETTINGS PANEL) ======== --
 ----------------------------------------------------
-AddHook("OnDraw", "PNB_GUI", function()
+AddHook("OnDraw", "PNB_Settings", function()
     if ImGui.Begin("PNB Controller") then
         ImGui.Text("🌍 World & Position Settings")
-        _, world_name = ImGui.InputText("World", world_name or "", 32)
-        _, Posisi_x = ImGui.InputInt("PNB X", Posisi_x)
-        _, Posisi_y = ImGui.InputInt("PNB Y", Posisi_y)
+        ImGui.Text(" Posisi Awal")
+        _, Posisi_x = ImGui.InputInt("Posisi X", Posisi_x)
+        _, Posisi_y = ImGui.InputInt("Posisi Y", Posisi_y)
 
+        ImGui.Separator()
+        ImGui.Text(" Arah Player")
+        if ImGui.RadioButton("Kanan", Arah_player == "kanan") then
+            Arah_player = "kanan"
+        end
         ImGui.SameLine()
-        if ImGui.Button("📍 Set From Player") then
-            local me, w = GetLocal(), GetWorld()
-            if me and w then
-                Posisi_x, Posisi_y = me.pos.x // 32, me.pos.y // 32
-                world_name = w.name
-                addLog("Posisi diset dari player: ("..Posisi_x..","..Posisi_y..") @"..world_name)
-            else
-                addLog("Gagal set posisi (belum di world?)")
-            end
+        if ImGui.RadioButton("Kiri", Arah_player == "kiri") then
+            Arah_player = "kiri"
         end
 
         ImGui.Separator()
-        if not runningPNB then
-            if ImGui.Button("▶ Start PNB") then StartPNB() end
-        else
-            if ImGui.Button("⏹ Stop PNB") then StopPNB() end
+        ImGui.Text(" Gems Mode")
+        if ImGui.RadioButton("Convert", Gems_mode == "cv") then
+            Gems_mode = "cv"
         end
-ImGui.Text("Status: " .. (runningPNB and ("Running @" .. (world_name)) or "Idle"))
+        ImGui.SameLine()
+        if ImGui.RadioButton("Take", Gems_mode == "take") then
+            Gems_mode = "take"
+        end
+        ImGui.SameLine()
+        if ImGui.RadioButton("Drop", Gems_mode == "drop") then
+            Gems_mode = "drop"
+        end
 
         ImGui.Separator()
+        ImGui.Text(" Break Gems Take?")
+        if ImGui.RadioButton("Yes", Bgems_take == "yes") then
+            Bgems_take = "yes"
+        end
+        ImGui.SameLine()
+        if ImGui.RadioButton("No", Bgems_take == "no") then
+            Bgems_take = "no"
+        end
+
+        ImGui.Separator()
+        ImGui.Text(" Toggle Opsi")
+        _, Disable_player    = ImGui.Checkbox("Disable Player", Disable_player == "on")
+        Disable_player       = Disable_player and "on" or "off"
+        _, Ignore_drop       = ImGui.Checkbox("Ignore Drop", Ignore_drop == "on")
+        Ignore_drop          = Ignore_drop and "on" or "off"
+        _, Ignore_completely = ImGui.Checkbox("Ignore Completely", Ignore_completely == "on")
+        Ignore_completely    = Ignore_completely and "on" or "off"
+
+        ImGui.Separator()
+        ImGui.Text(" Advance Settings")
+        _, autobuyvend = ImGui.Checkbox("Auto Buy Vend", autobuyvend == "on")
+        autobuyvend    = autobuyvend and "on" or "off"
+        _, worldvend = ImGui.InputText("World Vend", worldvend, 32)
+        _, aVposX = ImGui.InputInt("Arroz Vend X", aVposX)
+        _, aVposY = ImGui.InputInt("Arroz Vend Y", aVposY)
+        _, cVposX = ImGui.InputInt("Clover Vend X", cVposX)
+        _, cVposY = ImGui.InputInt("Clover Vend Y", cVposY)
+
+        ImGui.Separator()
+        _, cvpergems = ImGui.InputInt("CV per Gems", cvpergems)
+
+        ImGui.Separator()
+        ImGui.Text(" Item IDs")
+        _, BackgroundID = ImGui.InputInt("Background ID", BackgroundID)
+        _, mpID         = ImGui.InputInt("Magplant ID", mpID)
+        _, teleID       = ImGui.InputInt("Telephone ID", teleID)
+
         ImGui.End()
     end
 end)

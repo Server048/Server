@@ -72,7 +72,7 @@ function StartSpam()
 
   spamThread = RunThread(function()
     local ok, err = pcall(function()
-      while true do
+      while _G.spamRunning do
         StopCheck()
         SendPacket(2, "action|input\n|text|" .. spamText)
         Sleep(spamDelay)
@@ -100,12 +100,12 @@ function StartSpam()
 end
 
 function StopSpam()
-  if not _G.spamRunning then
-    addLog("Tidak ada spam yang berjalan.")
+  if _G.spamRunning then
+    statusText = "Stopping..."
+  _G.shouldStop = true
     return
   end
-  statusText = "Stopping..."
-  _G.shouldStop = true
+  addLog("Tidak ada spam yang berjalan.")
   -- lempar STOP agar pcall cleanup eksekusi
   
 end

@@ -31,7 +31,7 @@ local statusText  = "Idle"
 local function StopCheck()
   if _G.StopCheck then
     _G.StopCheck() -- gunakan versi HUB
-  --else
+  else
    -- if _G.shouldStop then error("STOP_REQUESTED")
     end
   end
@@ -151,7 +151,7 @@ AddHook("OnDraw", HOOK_NAME, function()
       ImGui.SameLine()
       if ImGui.Button("Tutup GUI") then _G.spamShow = false end
     else
-      if ImGui.Button("⏹ Stop Spam") then StopSpam() end
+      if ImGui.Button("⏹ Stop Spam") then StopSpam()
       end
       ImGui.SameLine()
       ImGui.BeginDisabled(true)

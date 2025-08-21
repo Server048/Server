@@ -150,7 +150,8 @@ AddHook("OnDraw", HOOK_NAME, function()
       ImGui.SameLine()
       if ImGui.Button("Tutup GUI") then _G.spamShow = false end
     else
-      if ImGui.Button("⏹ Stop Spam (loop saja)") then
+      if ImGui.Button("⏹ Stop Spam") then
+          StopSpam()
         pcall(function() error("STOP_REQUESTED") end)
       end
       ImGui.SameLine()

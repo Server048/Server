@@ -32,8 +32,8 @@ local function StopCheck()
   if _G.StopCheck then
     _G.StopCheck() -- gunakan versi HUB
   else
-   -- if _G.shouldStop then error("STOP_REQUESTED")
-    -- end
+    if _G.shouldStop then error("STOP_REQUESTED")
+     end
   end
 end
 

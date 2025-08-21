@@ -102,7 +102,7 @@ end
 function StopSpam()
   if _G.spamRunning then
     statusText = "Stopping..."
-  _G.shouldStop = true
+  _G.spamRunning = false
     return
   end
   addLog("Tidak ada spam yang berjalan.")

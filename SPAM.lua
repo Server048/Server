@@ -18,12 +18,13 @@ local spamDelay = 5000 -- ms
 local function spamLoop()
     while not shouldStop do
         StopCheck()
+        if shouldStop then break end
         if runningSpam then
             SendPacket(2, "action|input\n|text|" .. spamText)
       addLog("[SPAM] >> " .. spamText)
             Sleep(spamDelay)
         else
-            Sleep(200)
+            Sleep(100)
         end
     end
     showSpamWindow = false

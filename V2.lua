@@ -711,7 +711,7 @@ AddHook("OnDraw", HOOK_NAME, function()
     ImGui.Text("Pengaturan PNB (mini)")
 
     if not _G.pnbRunning then
-      if ImGui.Button("▶ Start PNB") then StartPNB() end
+      if ImGui.Button("▶ Start PNB") then RunThread(StartPNB) end
       ImGui.SameLine()
       if ImGui.Button("Tutup GUI") then ClosePNB() end
     else

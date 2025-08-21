@@ -372,46 +372,72 @@ end
 ----------------------------------------------------
 AddHook("onvariant", "PNB_variant", function(var)
   if var[0] == "OnTalkBubble" then
-    if var[2]:find("You received a MAGPLANT 5000 Remote.") then
-      yok = true
-    elseif var[2]:find("The MAGPLANT 5000 is empty.") then
-      MagplantManager.cmg = true
+        if var[2]:find("Collected") then
+          -- local Curgems = tonumber(var[2]:match("%d+"))
+          -- Tgems = Tgems + Curgems
+        elseif var[2]:find("You received a MAGPLANT 5000 Remote.") then
+            yok = true
+        elseif var[2]:find("The MAGPLANT 5000 is empty.") then
+            MagplantManager.cmg = true
+        end
+                
+    elseif var[0] == "OnConsoleMessage" then
+        if var[1]:find("Your luck has worn off.") then
+                    clover = true
+                end
+        if var[1]:find("Your stomach's rumbling.") then
+                  arroz = true
+                end
+        if var[1]:find("You're luckier than before!") then
+          clover = false
+        end
+        if var[1]:find("chance of a gem") then
+           arroz = false
+        end
+        if var[1]:find("Where would you like to go?") then
+          joinworld = true
+        end
+        if var[1]:find("World Locked") then
+            MagplantManager.rept = true
+        elseif var[1]:find("returns to normal") or var[1]:find("can't use this command here") then
+            MagplantManager.mgh = true
+        end
+    elseif var[0] == "OnDialogRequest" then
+      if var[1]:find("DigiVend") then
+        return true
+      end
+      if var[1]:find("MAGPLANT 5000") then
+        local amous = var[1]:match("Stock: `$(%d+)")
+        local amou = 0
+        if amous == nil then
+          amou = 0
+        else
+          amou = amous
+        end
+        stocks = amou
+        return true
+      end
+      if var[1]:find("Black Backpack") then
+        if var[1]:find("Breaking Gems") then
+          arroz = false
+        else
+          arroz = true
+        end
+        if var[1]:find("Lucky!") then
+          clover = false
+        else
+          clover = true
+        end
+        return true
+      elseif var[1]:find("cheat") then
+        return true
+      elseif var[1]:find("telephone") then
+        return true
+      end
+    elseif var[0] == "OnSDBroadcast" then
+        return true
     end
-
-  elseif var[0] == "OnConsoleMessage" then
-    if var[1]:find("Your luck has worn off.") then clover = true end
-    if var[1]:find("Your stomach's rumbling.") then arroz = true end
-    if var[1]:find("You're luckier than before!") then clover = false end
-    if var[1]:find("chance of a gem") then arroz = false end
-    if var[1]:find("Where would you like to go?") then joinworld = true end
-
-    if var[1]:find("World Locked") then
-      MagplantManager.rept = true
-    elseif var[1]:find("returns to normal") or var[1]:find("can't use this command here") then
-      MagplantManager.mgh = true
-    end
-
-  elseif var[0] == "OnDialogRequest" then
-    if var[1]:find("DigiVend") then return true end
-    if var[1]:find("MAGPLANT 5000") then
-      local amous = var[1]:match("Stock: `$(%d+)")
-      stocks = amous and amous or 0
-      return true
-    end
-    if var[1]:find("Black Backpack") then
-      if var[1]:find("Breaking Gems") then arroz = false else arroz = true end
-      if var[1]:find("Lucky!") then clover = false else clover = true end
-      return true
-    elseif var[1]:find("cheat") then
-      return true
-    elseif var[1]:find("telephone") then
-      return true
-    end
-
-  elseif var[0] == "OnSDBroadcast" then
-    return true
-  end
-  return false
+    return false
 end)
 
 ----------------------------------------------------
@@ -427,6 +453,8 @@ end
 local function Rdelay(cyc)
   if tamous > cyc then tamous = 0; return true else tamous = tamous + 1; return false end
 end
+
+
 
 ----------------------------------------------------
 -- ============ TELEPHONE FIND ==================== --

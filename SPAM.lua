@@ -23,7 +23,7 @@ local spamText    = "Hello World!"
 local spamDelay   = 2000
 local statusText  = "Idle"
 
-log = addLog
+
 
 ------------------------------------------------------------
 -- 3) StopCheck fallback (pakai HUB jika ada)
@@ -58,11 +58,11 @@ end
 ------------------------------------------------------------
 function StartSpam()
   if _G.spamRunning then
-    log("⚠ Spam sudah berjalan.")
+    addLog("⚠ Spam sudah berjalan.")
     return
   end
   if _G.shouldStop then
-    log("Tidak bisa start, HUB sedang STOP mode.")
+    addLog("Tidak bisa start, HUB sedang STOP mode.")
     return
   end
 
@@ -89,9 +89,9 @@ function StartSpam()
 
     if not ok then
       if tostring(err):find("STOP_REQUESTED") then
-        log("✅ Spam dihentikan.")
+        addLog("✅ Spam dihentikan.")
       else
-        log("❌ Error: " .. tostring(err))
+        addLog("❌ Error: " .. tostring(err))
       end
     end
 
@@ -101,7 +101,7 @@ end
 
 function StopSpam()
   if not _G.spamRunning then
-    log("Tidak ada spam yang berjalan.")
+    addLog("Tidak ada spam yang berjalan.")
     return
   end
   statusText = "Stopping..."

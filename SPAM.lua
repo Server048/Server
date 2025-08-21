@@ -23,9 +23,7 @@ local spamText    = "Hello World!"
 local spamDelay   = 2000
 local statusText  = "Idle"
 
-local function log(m)
-  addLog("[ SPAM ] >> " .. m)
-end
+log = addLog
 
 ------------------------------------------------------------
 -- 3) StopCheck fallback (pakai HUB jika ada)

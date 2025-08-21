@@ -24,7 +24,7 @@ local spamDelay   = 2000
 local statusText  = "Idle"
 
 local function log(m)
-  addLog("SPAM> " .. m) else addLog("SPAM> " .. m) end
+  addLog("[ SPAM ] >> " .. m)
 end
 
 ------------------------------------------------------------

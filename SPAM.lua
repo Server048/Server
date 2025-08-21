@@ -33,7 +33,7 @@ local function StopCheck()
     _G.StopCheck() -- gunakan versi HUB
   else
    -- if _G.shouldStop then error("STOP_REQUESTED")
-    end
+    -- end
   end
 end
 

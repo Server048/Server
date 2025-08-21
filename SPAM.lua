@@ -3,7 +3,7 @@
 -- =======================================
 
 -- STATE
-local showSpamWindow = true
+local showWindow = true
 local runningSpam = false
 local spamThread = nil
 local shouldStop = false

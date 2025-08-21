@@ -1,81 +1,102 @@
--- =======================================
--- SPAM BOT + GUI
--- =======================================
+-----------------------------
+-- SPAM CONTROLLER --
+-----------------------------
 
--- STATE
+-- ==== GLOBAL STATE ====
+_G.shouldStop      = false   
+_G.spamRunning     = false  
+_G.spamShow        = true    
+local spamThread   = nil
+local spamText     = "Hello World!"
+local spamDelay    = 2000    
+local statusText   = "Idle"
+local HOOK_NAME    = "SpamGUI_Controller"
 
-local runningSpam = false
-local spamThread = nil
+
+local function log(m) if LogToConsole then LogToConsole(m) else print(m) end end
 
 
--- CONFIG
-local spamText = "Hello World!"
-local spamDelay = 5000 
-
-----------------------------------------------------
--- ============ SPAM LOOP =========================
-----------------------------------------------------
-local function spamLoop()
-    while not shouldStop do
-        StopCheck()
-        
-        if runningSpam then
-            SendPacket(2, "action|input\n|text|" .. spamText)
-      addLog("[SPAM] >> " .. spamText)
-            Sleep(spamDelay)
-        else
-            Sleep(100)
-        end
-    end
-    showWindow = false
-    addLog(" Script dihentikan total.")
+function StopCheck()
+  if _G.shouldStop then error("STOP_REQUESTED") end
 end
 
-local function StartSpam()
-    if runningSpam then
-        addLog("Spam sudah berjalan.")
-        return
+-- ==== START / STOP API ====
+function StartSpam()
+  if _G.spamRunning then
+    log("⚠ Spam sudah berjalan")
+    return
+  end
+
+  _G.shouldStop  = false
+  _G.spamRunning = true
+  _G.spamShow    = true
+  statusText     = "Running..."
+
+
+  spamThread = RunThread(function()
+    local ok, err = pcall(function()
+      while true do
+        StopCheck() 
+        SendPacket(2, "action|input\n|text|" .. spamText)
+        Sleep(spamDelay)
+      end
+    end)
+
+    _G.spamRunning = false
+    _G.shouldStop  = false
+    statusText     = "Idle"
+    _G.spamShow    = false   
+
+    if not ok then
+      if tostring(err):find("STOP_REQUESTED") then
+        log("✅ Spam dihentikan")
+      else
+        log("❌ Error di spam: " .. tostring(err))
+      end
     end
-    runningSpam = true
-    addLog("▶ Spam dimulai.")
+
+    spamThread = nil
+  end)
 end
 
-local function StopSpam()
-    if not runningSpam then
-        addLog("Spam tidak berjalan.")
-        return
-    end
-    runningSpam = false
-    addLog("⏹ Spam dihentikan Stoping.")
+function StopSpam()
+  if not _G.spamRunning then
+    log("Tidak ada spam yang berjalan")
+    return
+  end
+  statusText    = "Stopping..."
+  _G.shouldStop = true
 end
 
-----------------------------------------------------
--- ============ MAIN THREAD ========================
-----------------------------------------------------
-RunThread(spamLoop)
+-- ==== IMGUI ====
+AddHook("OnDraw", HOOK_NAME, function()
+  if not _G.spamShow then return end
 
-----------------------------------------------------
--- ============ GUI (IMGUI PANEL) =================
-----------------------------------------------------
-AddHook("OnDraw", "SPAM_GUI", function()
-    if not showWindow then return end
+  if ImGui.Begin("Spam Controller", true, ImGuiWindowFlags_AlwaysAutoResize) then
+    ImGui.Text("Pengaturan Spam")
 
-    if ImGui.Begin("Spam Controller") then
-        ImGui.Text("Pengaturan Spam")
+    ImGui.PushItemWidth(260)
+    _, spamText  = ImGui.InputText("Teks Spam",  spamText, 120)
+    _, spamDelay = ImGui.InputInt("Delay (ms)",  spamDelay)
+    ImGui.PopItemWidth()
 
-        _, spamText = ImGui.InputText("Teks Spam", spamText, 128)
-        _, spamDelay = ImGui.InputInt("Delay (ms)", spamDelay)
-
-        ImGui.Separator()
-        if not runningSpam then
-            if ImGui.Button("▶ Start Spam") then StartSpam() end
-        else
-            if ImGui.Button("⏹ Stop Spam") then StopSpam() end
-        end
-
-        ImGui.Text("Status: " .. (runningSpam and "Running" or "Idle"))
-
-        ImGui.Separator()
-        ImGui.End()
+    if not _G.spamRunning then
+      if ImGui.Button("▶ Start Spam") then StartSpam() end
+      ImGui.SameLine()
+      if ImGui.Button("Tutup GUI") then _G.spamShow = false end
+    else
+      if ImGui.Button("⏹ Stop Spam") then StopSpam() end
+      ImGui.SameLine()
+      ImGui.BeginDisabled(true)
+      ImGui.Button("Tutup GUI")
+      ImGui.EndDisabled()
     end
+
+    ImGui.Text("Status: " .. statusText)
+    ImGui.End()
+  end
 end)
+
+-- ==== CONTOH: trigger eksternal dari kode utama ====
+-- panggil StartSpam() untuk mulai
+-- panggil StopSpam()  untuk kirim sinyal stop (GUI akan tertutup saat loop selesai)

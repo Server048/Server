@@ -704,6 +704,7 @@ end
 
 function pnbstart()
   while not shouldStop do
+        StopCheck()
     pnbmain()
     Sleep(100)
   end

@@ -6,7 +6,7 @@
 
 local runningSpam = false
 local spamThread = nil
-local shouldStop = false
+
 
 -- CONFIG
 local spamText = "Hello World!"

@@ -10,7 +10,7 @@ local shouldStop = false
 
 -- CONFIG
 local spamText = "Hello World!"
-local spamDelay = 5000 -- ms
+local spamDelay = 5000 
 
 ----------------------------------------------------
 -- ============ SPAM LOOP =========================

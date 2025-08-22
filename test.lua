@@ -475,110 +475,130 @@ AddHook("OnDraw", "PTHT_GUI", function()
 
   ImGui.Begin("🌱 PTHT Controller", true, ImGuiWindowFlags_AlwaysAutoResize)
 
-  ----------------------------------------------------
-  -- Kontrol utama PTHT
-  ----------------------------------------------------
-  if ImGui.Button("▶ Start PTHT", 140, 32) then
-    if not pt_running then
-      World = WorldName()
-      pt_running = true
-      TextO("`2[PTHT] Started.")
-    end
-  end
-
-  ImGui.SameLine()
-  if ImGui.Button("⏹ Stop PTHT", 140, 32) then
-    if pt_running then
-      pt_running = false
-      TextO("`e[PTHT] Paused. Thread alive.")
-    end
-  end
-
-  if ImGui.Button("❌ Tutup GUI", 288, 32) then
-    pt_running = false
-    ui_visible = false
-    _G.shouldStop = true
-    TextO("`4[PTHT] Terminate requested.")
-  end
-
-  ----------------------------------------------------
-  ImGui.Separator()
-  ImGui.Text("⚙️ PTHT Settings")
-
-  -- World
-  _, World = ImGui.InputText("World", World, 32)
-
-  -- Mode dropdown (PT / PTHT)
-  local modes = {"PT", "PTHT"}
-  local currentMode = 1
-  for i, v in ipairs(modes) do
-    if v == Customize.Start.Mode then currentMode = i end
-  end
-  if ImGui.BeginCombo("Mode", modes[currentMode]) then
-    for i, v in ipairs(modes) do
-      if ImGui.Selectable(v, i == currentMode) then
-        Customize.Start.Mode = v
+  if ImGui.BeginTabBar("PTHT_Tabs") then
+    ----------------------------------------------------
+    -- TAB MAIN
+    ----------------------------------------------------
+    if ImGui.BeginTabItem("🌱 Main") then
+        if not pt_running then
+      if ImGui.Button("▶ Start PTHT", 140, 32) then
+        if not pt_running then
+          World = WorldName()
+          pt_running = true
+          TextO("`2[PTHT] Started.")
+        end
       end
-    end
-    ImGui.EndCombo()
-  end
 
-  -- Loop
-  _, Customize.Start.Loop = ImGui.InputInt("Loop Count", Customize.Start.Loop)
-
-  -- Position
-  _, Customize.Start.PosX = ImGui.InputInt("Pos X", Customize.Start.PosX)
-  _, Customize.Start.PosY = ImGui.InputInt("Pos Y", Customize.Start.PosY)
-  if ImGui.Button("📍 Set Pos dari Player") then
-    local me, w = GetLocal(), GetWorld()
-    if me and w then
-      Customize.Start.PosX = me.pos.x // 32
-      Customize.Start.PosY = me.pos.y // 32
-      World = w.name
-      TextO("✅ Posisi & World diset dari player: ("..Customize.Start.PosX..","..Customize.Start.PosY..") @"..World)
-    else
-      TextO("⚠ Tidak bisa set dari player (belum di world?)")
-    end
-  end
-
-  -- Delay
-  _, Customize.Delay.Harvest  = ImGui.InputInt("Delay Harvest",  Customize.Delay.Harvest)
-  _, Customize.Delay.entering = ImGui.InputInt("Delay Entering", Customize.Delay.entering)
-  _, Customize.Delay.Plant    = ImGui.InputInt("Delay Plant",    Customize.Delay.Plant)
-
-  -- Other
-  _, Customize.Other.WebHooks  = ImGui.InputText("Webhook URL",  Customize.Other.WebHooks, 256)
-  _, Customize.Other.DiscordID = ImGui.InputText("Discord ID",   Customize.Other.DiscordID, 64)
-
-  -- ModePlant dropdown (left / right)
-  local plantModes = {"left", "right"}
-  local currentPlantMode = 1
-  for i, v in ipairs(plantModes) do
-    if v == Customize.Other.ModePlant then currentPlantMode = i end
-  end
-  if ImGui.BeginCombo("Mode Plant", plantModes[currentPlantMode]) then
-    for i, v in ipairs(plantModes) do
-      if ImGui.Selectable(v, i == currentPlantMode) then
-        Customize.Other.ModePlant = v
+      ImGui.SameLine()
+        if ImGui.Button("❌ Tutup GUI", 288, 32) then
+        pt_running = false
+        ui_visible = false
+        _G.shouldStop = true
+        TextO("`4[PTHT] Terminate requested.")
+        end
+      else
+      if ImGui.Button("⏹ Stop PTHT", 140, 32) then
+        if pt_running then
+          pt_running = false
+          TextO("`e[PTHT] Paused. Thread alive.")
+        end
       end
+ImGui.SameLine()
+          ImGui.BeginDisabled(true); ImGui.Button("Tutup GUI"); ImGui.EndDisabled()
+      end
+
+      ImGui.Separator()
+      -- World & Posisi
+      ImGui.Text("World : "..World)
+      if ImGui.Button("📍 Set Pos dari Player") then
+        local me, w = GetLocal(), GetWorld()
+        if me and w then
+          Customize.Start.PosX = me.pos.x // 32
+          Customize.Start.PosY = me.pos.y // 32
+          World = w.name
+          TextO("✅ Posisi & World diset dari player: ("..Customize.Start.PosX..","..Customize.Start.PosY..") @"..World)
+        else
+          TextO("⚠ Tidak bisa set dari player (belum di world?)")
+        end
+      end
+
+      -- Webhook
+      _, Customize.Other.WebHooks = ImGui.InputText("Webhook URL", Customize.Other.WebHooks, 256)
+
+      ImGui.Separator()
+      -- Status
+      ImGui.Text("📊 Status Info")
+      ImGui.Text("World     : "..World)
+      ImGui.Text("Mode      : "..Customize.Start.Mode)
+      ImGui.Text("ModePlant : "..Customize.Other.ModePlant)
+      ImGui.Text("PTHT Count: "..tostring(PTHT))
+      ImGui.Text("Status    : "..(pt_running and "Running" or "Idle"))
+      ImGui.EndTabItem()
     end
-    ImGui.EndCombo()
+
+    ----------------------------------------------------
+    -- TAB SETTINGS
+    ----------------------------------------------------
+    if ImGui.BeginTabItem("⚙️ Settings") then
+      -- Tree ID
+      _, Customize.TreeID = ImGui.InputInt("Tree ID", Customize.TreeID)
+
+      -- Mode dropdown
+      local modes = {"PT", "PTHT"}
+      local currentMode = 1
+      for i, v in ipairs(modes) do
+        if v == Customize.Start.Mode then currentMode = i end
+      end
+      if ImGui.BeginCombo("Mode", modes[currentMode]) then
+        for i, v in ipairs(modes) do
+          if ImGui.Selectable(v, i == currentMode) then
+            Customize.Start.Mode = v
+          end
+        end
+        ImGui.EndCombo()
+      end
+
+      -- Loop Count
+      _, Customize.Start.Loop = ImGui.InputInt("Loop Count", Customize.Start.Loop)
+
+      -- Posisi Manual
+      _, Customize.Start.PosX = ImGui.InputInt("Pos X", Customize.Start.PosX)
+      _, Customize.Start.PosY = ImGui.InputInt("Pos Y", Customize.Start.PosY)
+
+      -- Delay
+      _, Customize.Delay.Harvest  = ImGui.InputInt("Delay Harvest",  Customize.Delay.Harvest)
+      _, Customize.Delay.entering = ImGui.InputInt("Delay Entering", Customize.Delay.entering)
+      _, Customize.Delay.Plant    = ImGui.InputInt("Delay Plant",    Customize.Delay.Plant)
+
+      -- Discord
+      _, Customize.Other.DiscordID = ImGui.InputText("Discord ID", Customize.Other.DiscordID, 64)
+
+      -- ModePlant dropdown
+      local plantModes = {"left", "right"}
+      local currentPlantMode = 1
+      for i, v in ipairs(plantModes) do
+        if v == Customize.Other.ModePlant then currentPlantMode = i end
+      end
+      if ImGui.BeginCombo("Mode Plant", plantModes[currentPlantMode]) then
+        for i, v in ipairs(plantModes) do
+          if ImGui.Selectable(v, i == currentPlantMode) then
+            Customize.Other.ModePlant = v
+          end
+        end
+        ImGui.EndCombo()
+      end
+
+      _, Customize.Other.Mray = ImGui.Checkbox("Use Mray", Customize.Other.Mray)
+
+      -- Magplant
+      _, Customize.Magplant.Limit = ImGui.InputInt("Magplant Limit", Customize.Magplant.Limit)
+      _, Customize.Magplant.bcg   = ImGui.InputInt("Magplant BG",    Customize.Magplant.bcg)
+
+      ImGui.EndTabItem()
+    end
+
+    ImGui.EndTabBar()
   end
-
-  _, Customize.Other.Mray      = ImGui.Checkbox("Use Mray", Customize.Other.Mray)
-
-  -- Magplant
-  _, Customize.Magplant.Limit = ImGui.InputInt("Magplant Limit", Customize.Magplant.Limit)
-  _, Customize.Magplant.bcg   = ImGui.InputInt("Magplant BG",    Customize.Magplant.bcg)
-
-  ----------------------------------------------------
-  ImGui.Separator()
-  ImGui.Text("📊 Status Info")
-  ImGui.Text("World     : "..World)
-  ImGui.Text("Mode      : "..Customize.Start.Mode)
-  ImGui.Text("ModePlant : "..Customize.Other.ModePlant)
-  ImGui.Text("PTHT Count: "..tostring(PTHT))
-  ImGui.Text("Status    : "..(pt_running and "Running" or "Idle"))
 
   ImGui.End()
 end)

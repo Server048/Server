@@ -18,8 +18,8 @@ Customize = {
   },
   Other = {
     Mray      = true,
-    WebHooks  = "https://discord.com/api/webhooks/1320693036493049906/BDhdH6jwA_vYTwcn_b1X38QapjygAYuSghB20pPm3FIyGfczk5TdENW8hR52YdedDr9N",
-    DiscordID = "732015085475856384",
+    WebHooks  = "",
+    DiscordID = "",
     ModePlant = "right",          -- "left" / "right"
   },
   Magplant = {
@@ -55,7 +55,7 @@ local RemoteEmpty, Plant, Harvest = true, true, false
 -- helper patuh HUB
 local function ShouldStop()
   if _G.shouldStop then return true end
-  -- StopCheck() disediakan HUB-mu; kalau ada, pakai
+  
   if type(StopCheck) == "function" then
     local ok = pcall(StopCheck)
     if not ok then return true end
@@ -87,7 +87,7 @@ local function Raw(H, I, J, K, L)
 end
 
 ------------------------------------------------------------
---  HOOK MAGPLANT STOCK (tetap)
+--  HOOK MAGPLANT STOCK
 ------------------------------------------------------------
 AddHook("OnVariant", "PTHT_convert", function(vS)
   if vS[0]:find("OnDialogRequest") then
@@ -101,7 +101,7 @@ AddHook("OnVariant", "PTHT_convert", function(vS)
 end)
 
 ------------------------------------------------------------
---  FUNGSI ASLI (dipertahankan)
+--  FUNGSI ASLI
 ------------------------------------------------------------
 local function iv(id)
   for _, it in pairs(GetInventory()) do
@@ -218,7 +218,7 @@ local function ChangeMode()
 end
 
 ------------------------------------------------------------
---  ROTATION (dipertahankan)
+--  ROTATION
 ------------------------------------------------------------
 local function Rotation()
   if Customize.Other.ModePlant:lower() == "left" then
@@ -259,7 +259,7 @@ local function Rotation()
     for x = Customize.Start.PosX, 199, Customize.Other.Mray and 10 or 1 do
       if ShouldStop() or not pt_running then return end
       if GetWorld() == nil or WorldName() ~= World or RemoteEmpty then return end
-      LogToConsole("`9 "..os.date("%H:%M:%S").." `0[`4Doctor`0] `cCurrently `0"..(Plant and "Harvest" or "Planting").." `4On `9X `8: `2"..x)
+      LogToConsole("`9 "..os.date("%H:%M:%S").." `0[`4Doctor`0] `cCurrently `0"..(Plant and "Planting" or "Harvest").." `4On `9X `8: `2"..x)
       for Loop = 1, 2 do
         for y = Customize.Start.PosY, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
           if ShouldStop() or not pt_running then return end
@@ -297,7 +297,7 @@ local function Rotation()
 end
 
 ------------------------------------------------------------
---  RECONNECT (dipertahankan + safe stop)
+--  RECONNECT
 ------------------------------------------------------------
 local function Reconnect()
   if ShouldStop() or not pt_running then return end
@@ -317,7 +317,7 @@ local function Reconnect()
 end
 
 ------------------------------------------------------------
---  WEBHOOK (dipertahankan + guard magplant)
+-- WEBHOOK
 ------------------------------------------------------------
 local function allbout(tis)
   local days   = math.floor(tis / 86400)
@@ -391,12 +391,9 @@ local function ahHa()
 end
 
 ------------------------------------------------------------
---  SUPERVISOR (PATUH HUB)
---  - tetap hidup (pt_alive) walau Stop PTHT
---  - berhenti total kalau _G.shouldStop = true / Tutup GUI
 ------------------------------------------------------------
 RunThread(function()
-  -- dialog selamat datang (opsional)
+  
   local ps = [[set_default_color||
 add_label_with_icon|big|`oWelcome|left|2480|
 add_textbox|   `oThanks for Using PTHT|
@@ -408,7 +405,7 @@ end_dialog|c|Exit|
 add_quick_exit||]]
   SendVariantList{[0] = "OnDialogRequest", [1] = ps}
 
-  -- inisialisasi mode
+  
   if Customize.Start.Mode:upper() == "PT" then
     Plant, Harvest = true, false
   elseif Customize.Start.Mode:upper() == "PTHT" then
@@ -417,18 +414,18 @@ add_quick_exit||]]
     Plant, Harvest = false, true
   end
 
-  -- info awal (tidak spam)
+  
   for i = 1, 2 do
     if not SleepSafe(1000) then break end
     SendPacket(2, "action|input\n|text|`8[  `4PtHt Doctor`8] `cCount `w"..Customize.Start.Mode.." `c"..tostring(Customize.Start.Loop).." `4Mode: `9"..Customize.Other.ModePlant:upper())
   end
 
-  -- LOOP SUPERVISOR
+  
   while pt_alive do
     if ShouldStop() then break end
 
     if pt_running then
-      -- update world name saat start
+      
       World = WorldName()
 
       if Customize.Start.Loop == "unli" then
@@ -455,12 +452,12 @@ add_quick_exit||]]
         end
       end
     else
-      -- idle supaya thread tetap hidup dan bisa lanjut saat Start lagi
+      
       SleepSafe(150)
     end
   end
 
-  -- cleanup saat terminate
+  
   pt_alive   = false
   pt_running = false
   ui_visible = false
@@ -473,13 +470,13 @@ end)
 AddHook("OnDraw", "PTHT_GUI", function()
   if _G.shouldStop or not ui_visible then return end
 
-  ImGui.Begin("🌱 PTHT Controller", true, ImGuiWindowFlags_AlwaysAutoResize)
+  ImGui.Begin(" PTHT Controller", true, ImGuiWindowFlags_AlwaysAutoResize)
 
   if ImGui.BeginTabBar("PTHT_Tabs") then
     ----------------------------------------------------
     -- TAB MAIN
     ----------------------------------------------------
-    if ImGui.BeginTabItem("🌱 Main") then
+    if ImGui.BeginTabItem(" Main") then
         if not pt_running then
       if ImGui.Button("▶ Start PTHT", 140, 32) then
         if not pt_running then
@@ -510,10 +507,10 @@ ImGui.SameLine()
       ImGui.Separator()
       -- World & Posisi
       ImGui.Text("World : "..World)
-      if ImGui.Button("📍 Set Pos dari Player") then
+      if ImGui.Button(" Set Pos dari Player") then
         local me, w = GetLocal(), GetWorld()
         if me and w then
-          Customize.Start.PosX = me.pos.x // 32
+  
           Customize.Start.PosY = me.pos.y // 32
           World = w.name
           TextO("✅ Posisi & World diset dari player: ("..Customize.Start.PosX..","..Customize.Start.PosY..") @"..World)
@@ -539,7 +536,7 @@ ImGui.SameLine()
     ----------------------------------------------------
     -- TAB SETTINGS
     ----------------------------------------------------
-    if ImGui.BeginTabItem("⚙️ Settings") then
+    if ImGui.BeginTabItem("Settings") then
       -- Tree ID
       _, Customize.TreeID = ImGui.InputInt("Tree ID", Customize.TreeID)
 

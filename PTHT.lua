@@ -315,22 +315,22 @@ end
 ------------------------------------------------------------
 --  RECONNECT
 ------------------------------------------------------------
-local function Reconnect()
+function Reconnect()
   if ShouldStop() or not pt_running then return end
-  if GetWorld() == nil or WorldName() ~= World then
-    SendPacket(3, "action|join_request\nname|"..World.."|\ninvitedWorld|0")
-    TextO("`0Entering `4World `0: `e"..World)
-    SleepSafe(Customize.Delay.entering * 100)
-    RemoteEmpty = true
-  else
-    if RemoteEmpty then
-      TextO("`wTaking `4Remote")
-      GetRemote()
-      RemoteEmpty = false
-    end
-    Rotation()
-  end
-end
+       if GetWorld() == nil or GetWorld().name ~= World then
+           SendPacket(3, "action|join_request\nname|" .. World .. "|\ninvitedWorld|0")
+           TextO("`0Entering `4World `0: `e" .. World)
+           SleepSafe(Customize.Delay.entering * 100)
+           RemoteEmpty = true
+       else
+           if RemoteEmpty then
+               TextO("`wTaking `4Remote")
+               GetRemote()
+               RemoteEmpty = false
+           end
+           Rotation()
+       end
+   end
 
 ------------------------------------------------------------
 -- WEBHOOK

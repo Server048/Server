@@ -220,79 +220,95 @@ if Customize.Start.Mode:upper() == "PT" then
 --  ROTATION
 ------------------------------------------------------------
 local function Rotation()
-  if Customize.Other.ModePlant:lower() == "left" then
-    for x = 199, Customize.Start.PosX, Customize.Other.Mray and -10 or -1 do
+function Rotation()    
+    if Customize.Other.ModePlant:lower() == "left" then
       if ShouldStop() or not pt_running then return end
-      if GetWorld() == nil or WorldName() ~= World or RemoteEmpty then return end
-      LogToConsole("`9 "..os.date("%H:%M:%S").." `0[`4Doctor`0] `cCurrently `0"..(Plant and "Planting" or "Harvest").." `4On `9X `8: `2"..x)
-      for Loop = 1, 2 do
-        for y = Customize.Start.PosY, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
-          if ShouldStop() or not pt_running then return end
-          if GetWorld() == nil or WorldName() ~= World or RemoteEmpty then return end
-          local tile = GetTile(x, y)
-          if (Plant and tile.fg == 0) or (Harvest and tile.fg == Customize.TreeID and IsReady(tile)) then
-            Raw(0, 48, 0, x, y)
-            SleepSafe(Plant and Customize.Delay.Plant * 10 or Customize.Delay.Harvest * 5)
-            Raw(3, 48, Plant and 5640 or 18, x, y)
-            if GetWorld() == nil or WorldName() ~= World or RemoteEmpty then return end
-            local py = math.min(y + 2, Customize.Start.PosY)
-            if Plant then
-              if GetTile(x, py).fg == Customize.TreeID then
-                Limiter = 0
-              else
-                Limiter = Limiter + 1
-              end
+        for x = 199, Customize.Start.PosX, Customize.Other.Mray and -10 or -1 do
+            if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then
+                return
             end
-          end
-          if Limiter >= Customize.Magplant.Limit then
-            local Magplant = GetMagplant()
-            Current = #Magplant > 0 and (Current % #Magplant + 1) or 1
-            Limiter = 0
-            RemoteEmpty = true
-            return
-          end
-        end
-      end
-    end
-  else -- "right"
-    for x = Customize.Start.PosX, 199, Customize.Other.Mray and 10 or 1 do
-      if ShouldStop() or not pt_running then return end
-      if GetWorld() == nil or WorldName() ~= World or RemoteEmpty then return end
-      LogToConsole("`9 "..os.date("%H:%M:%S").." `0[`4Doctor`0] `cCurrently `0"..(Plant and "Planting" or "Harvest").." `4On `9X `8: `2"..x)
-      for Loop = 1, 2 do
-        for y = Customize.Start.PosY, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
-          if ShouldStop() or not pt_running then return end
-          if GetWorld() == nil or WorldName() ~= World or RemoteEmpty then return end
-          local tile = GetTile(x, y)
-          if (Plant and tile.fg == 0) or (Harvest and tile.fg == Customize.TreeID and IsReady(tile)) then
-            Raw(0, 32, 0, x, y)
-            SleepSafe(Plant and Customize.Delay.Plant * 10 or Customize.Delay.Harvest * 5)
-            Raw(3, 32, Plant and 5640 or 18, x, y)
-            if GetWorld() == nil or WorldName() ~= World or RemoteEmpty then return end
-            local py = math.min(y + 2, Customize.Start.PosY)
-            if Plant then
-              if GetTile(x, py).fg == Customize.TreeID then
-                Limiter = 0
-              else
-                Limiter = Limiter + 1
-              end
+            LogToConsole("`9 " .. os.date("%H:%M:%S") .. " `0[`4Doctor`0] `cCurrently `0" .. (Plant and "Planting" or "Harvest") .. " `4On `9X `8: `2" .. x)
+            for Loop = 1, 2, 1 do
+                for y = Customize.Start.PosY, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
+                    if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then
+                        return
+                    end
+                    local tile = GetTile(x, y)
+                    if (Plant and tile.fg == 0) or (Harvest and tile.fg == Customize.TreeID and IsReady(tile)) then
+                        Raw(0, 48, 0, x, y)
+                        Sleep(Plant and Customize.Delay.Plant * 10 or Customize.Delay.Harvest * 5)
+                        Raw(3, 48, Plant and 5640 or 18, x, y)
+                        if GetWorld() == nil or GetWorld().name ~= World  or RemoteEmpty then
+                            return
+                        end
+                        local py = math.min(y + 2, Customize.Start.PosY)
+                        if Plant then
+                            if GetTile(x, py).fg == Customize.TreeID then
+                                Limiter = 0
+                            else
+                                Limiter = Limiter + 1
+                            end
+                        end
+                    end
+                    if Limiter >= Customize.Magplant.Limit then
+                        local Magplant = GetMagplant()
+                        Current = Current % #Magplant + 1
+                        Limiter = 0
+                        RemoteEmpty = true
+                        return
+                    end
+                end
             end
-          end
-          if Limiter >= Customize.Magplant.Limit then
-            local Magplant = GetMagplant()
-            Current = #Magplant > 0 and (Current % #Magplant + 1) or 1
-            Limiter = 0
-            RemoteEmpty = true
-            return
-          end
         end
-      end
+    else
+        if Customize.Other.ModePlant:lower() == "right" then
+        if ShouldStop() or not pt_running then return end
+            for x = Customize.Start.PosX, 199, Customize.Other.Mray and 10 or 1 do
+                if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then
+                    return
+                end
+                LogToConsole("`9 " .. os.date("%H:%M:%S") .. " `0[`4Doctor`0] `cCurrently `0" .. (Plant and "Planting" or "Harvest") .. " `4On `9X `8: `2" .. x)
+                for Loop = 1, 2, 1 do
+                    for y = Customize.Start.PosY, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
+                        if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then
+                            return
+                        end
+                        local tile = GetTile(x, y)
+                        if (Plant and tile.fg == 0) or (Harvest and tile.fg == Customize.TreeID and IsReady(tile)) then
+                            Raw(0, 32, 0, x, y)
+                            Sleep(Plant and Customize.Delay.Plant * 10 or Customize.Delay.Harvest * 5)
+                            Raw(3, 32, Plant and 5640 or 18, x, y)
+                            if GetWorld() == nil or GetWorld().name ~= World  or RemoteEmpty then
+                                return
+                            end
+                            local py = math.min(y + 2, Customize.Start.PosY)
+                            if Plant then
+                                if GetTile(x, py).fg == Customize.TreeID then
+                                    Limiter = 0
+                                else
+                                    Limiter = Limiter + 1
+                                end
+                            end
+                        end
+                        if Limiter >= Customize.Magplant.Limit then
+                            local Magplant = GetMagplant()
+                            Current = Current % #Magplant + 1
+                            Limiter = 0
+                            RemoteEmpty = true
+                            return
+                        end
+                    end
+                end
+            end
+        end
     end
-  end
 
-  if GetWorld() == nil or WorldName() ~= World then return end
-  PTHT = PTHT + 1
-  ChangeMode()
+    if GetWorld() == nil or GetWorld().name ~= World then
+        return
+    end
+    
+    PTHT = PTHT + 1
+    ChangeMode()
 end
 
 ------------------------------------------------------------

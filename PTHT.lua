@@ -406,6 +406,14 @@ local function ahHa()
   SendWebhook(Customize.Other.WebHooks, payload)
 end
 
+
+  if Customize.Start.Mode:upper() == "PT" then
+    Plant, Harvest = true, false
+  elseif Customize.Start.Mode:upper() == "PTHT" then
+    Plant, Harvest = true, false
+  else
+    Plant, Harvest = false, true
+end
 ------------------------------------------------------------
 ------------------------------------------------------------
 RunThread(function()
@@ -420,15 +428,6 @@ add_textbox|`bPowered By Doctor|
 end_dialog|c|Exit|
 add_quick_exit||]]
   SendVariantList{[0] = "OnDialogRequest", [1] = ps}
-
-  
-  if Customize.Start.Mode:upper() == "PT" then
-    Plant, Harvest = true, false
-  elseif Customize.Start.Mode:upper() == "PTHT" then
-    Plant, Harvest = true, false
-  else
-    Plant, Harvest = false, true
-  end
 
   
   for i = 1, 2 do

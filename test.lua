@@ -315,22 +315,22 @@ end
 ------------------------------------------------------------
 --  RECONNECT
 ------------------------------------------------------------
+-- 🔹 Reconnect versi fix
 function Reconnect()
-  if ShouldStop() or not pt_running then return end
-       if GetWorld() == nil or GetWorld().name ~= World then
-           SendPacket(3, "action|join_request\nname|" .. World .. "|\ninvitedWorld|0")
-           TextO("`0Entering `4World `0: `e" .. World)
-           SleepSafe(Customize.Delay.entering * 100)
-           RemoteEmpty = true
-       else
-           if RemoteEmpty then
-               TextO("`wTaking `4Remote")
-               GetRemote()
-               RemoteEmpty = false
-           end
-           Rotation()
-       end
-   end
+    if GetWorld() == nil or GetWorld().name ~= World then
+        SendPacket(3, "action|join_request\nname|" .. World .. "|\ninvitedWorld|0")
+        TextO("`0Entering `4World `0: `e" .. World)
+        Sleep(Customize.Delay.entering * 10^2)
+        RemoteEmpty = true
+    else
+        if RemoteEmpty then
+            TextO("`wTaking `4Remote")
+            GetRemote()
+            RemoteEmpty = false
+        end
+        Rotation()
+    end
+end
 
 ------------------------------------------------------------
 -- WEBHOOK
@@ -428,7 +428,7 @@ end_dialog|c|Exit|
 add_quick_exit||]]
     SendVariantList{[0] = "OnDialogRequest", [1] = ps}
 
-    -- Pesan awal
+    -- Intro text
     for i = 1, 2 do
         if not SleepSafe(1000) then break end
         SendPacket(2, "action|input\n|text|`8[  `4PtHt Doctor`8] `cCount `w"
@@ -436,7 +436,7 @@ add_quick_exit||]]
             .." `4Mode: `9"..Customize.Other.ModePlant:upper())
     end
 
-    -- 🔁 Main Loop
+    -- Main loop
     while pt_alive do
         if ShouldStop() then break end
 
@@ -444,29 +444,31 @@ add_quick_exit||]]
             World = WorldName()
 
             if Customize.Start.Loop == "unli" then
-                -- mode unli → selalu jalan
                 Reconnect()
-                -- ahUh() -- webhook status kalau mau aktifkan
             elseif type(Customize.Start.Loop) == "number" then
-                -- mode dengan jumlah loop
                 Reconnect()
 
-                -- cek apakah sudah selesai
+                -- ✅ Cek apakah sudah finish loop
                 if (PTHT // 2) + 1 == Customize.Start.Loop then
-                    Rotation() -- cycle terakhir
-                    -- ahHa() -- webhook selesai kalau mau aktifkan
-                    SendPacket(2, "action|input\ntext|`4[`0PTHT`4] `bFINISHED `c"
-                        ..(PTHT // 2 + 1).." `4LEAVE `9WORLD")
-                    LogToConsole("`9Your job PTHT DONE")
-                    SleepSafe(7000)
-                    SendPacket(3, "action|join_request\nname|EXIT|\ninvitedWorld|0")
-                    pt_running = false -- auto stop
+                    -- Pastikan world valid dulu sebelum declare DONE
+                    if GetWorld() ~= nil and GetWorld().name == World and not RemoteEmpty then
+                        Rotation() -- last cycle
+                        SendPacket(2, "action|input\ntext|`4[`0PTHT`4] `bFINISHED `c"
+                            ..(PTHT // 2 + 1).." `4LEAVE `9WORLD")
+                        LogToConsole("`9Your job PTHT DONE")
+                        SleepSafe(7000)
+                        SendPacket(3, "action|join_request\nname|EXIT|\ninvitedWorld|0")
+                        pt_running = false -- ✅ stop otomatis
+                    else
+                        -- kalau world kosong → jangan declare DONE, tunggu reconnect
+                        LogToConsole("`c[PTHT] Skip finish karena world tidak valid, akan reconnect...")
+                    end
                 elseif PTHT % 2 ~= 0 then
-                    -- tiap selesai 1x Rotation (Plant/Harvest)
                     SendPacket(2, "action|input\ntext|`4[`2PTHT`4] `0[ `cRotation `4: `9"
                         ..(PTHT // 2 + 1).." `b/ `9"..tostring(Customize.Start.Loop).." (wink) `w]")
                     SleepSafe(4000)
 
+                    -- Display sisa PTHT
                     local remaining = Customize.Start.Loop - (PTHT // 2 + 1)
                     SendPacket(2, "action|input\n|text|`0SISA PTHT (halo) `4= `4[`9"
                         ..tostring(remaining).."`4] (troll)")
@@ -474,17 +476,18 @@ add_quick_exit||]]
                 end
             end
         else
-            -- kalau lagi idle
             SleepSafe(150)
         end
     end
 
-    -- kalau loop selesai/berhenti
     pt_alive   = false
     pt_running = false
     ui_visible = false
     TextO("`4[PTHT] Terminated by HUB/GUI.")
 end)
+
+
+
 ------------------------------------------------------------
 --  IMGUI CONTROLLER (AddHook)
 ------------------------------------------------------------

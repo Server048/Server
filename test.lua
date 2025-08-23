@@ -6,8 +6,8 @@
 Customize = {
   TreeID = 15757,
   Start = {
-    Mode = "PTHT",               -- "PT" / "PTHT"
-    Loop = 2,                    -- bisa number atau "unli"
+    Mode = "PTHT",
+    Loop = 2,                     -- bisa number atau "unli"
     PosX = 0,
     PosY = GetLocal().pos.y // 32,
   },
@@ -47,7 +47,7 @@ _G.shouldStop     = _G.shouldStop or false  -- sinyal global dari HUB
 
 -- counter/aset
 local PTHT      = 0
-local Limiter   = 0
+local Limiter   = 200
 local Current   = 1
 local iM        = 0
 local RemoteEmpty, Plant, Harvest = true, true, false
@@ -55,6 +55,7 @@ local RemoteEmpty, Plant, Harvest = true, true, false
 -- helper patuh HUB
 local function ShouldStop()
   if _G.shouldStop then return true end
+  
   if type(StopCheck) == "function" then
     local ok = pcall(StopCheck)
     if not ok then return true end
@@ -109,8 +110,12 @@ local function iv(id)
   return 0
 end
 
-local function IsReady(tile)
-  return tile and tile.extra and tile.extra.progress == 1
+local TotalTree = 0
+function IsReady(tile)
+    if tile and tile.extra and tile.extra.progress and tile.extra.progress == 1 then
+        return true
+    end
+    return false
 end
 
 local function siz(str) -- Credit AsleepDream
@@ -133,43 +138,32 @@ local function GetMagplant()
   return Found
 end
 
--- GetTree FIXED:
--- "a" = total tile yang BELUM tertanam (slot kosong pada baris kebun)
--- "b" = total pohon target yang ada (atau siap panen kalau Harvest)
-local function GetTree(kind)
-  local total = 0
-  if kind == "a" then
-    for y = Customize.Start.PosY + 1, (Customize.Start.PosY % 2 == 0) and 0 or 1, -2 do
-      for x = Customize.Start.PosX, 199 do
-        local t = GetTile(x, y)
-        if t.fg ~= Customize.TreeID then
-          total = total + 1
+local TotalTree = 0
+function GetTree(str)
+    if str == a then
+        local Total = 0
+        for y = Customize.Start.PosY + 1, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
+            for x = Customize.Start.PosX, 199, 1 do
+                if GetTile(x, y).fg ~= Customize.TreeID then
+                    Total = Total + 1
+                end
+            end
         end
-      end
-    end
-  else -- "b"
-    for y = Customize.Start.PosY, (Customize.Start.PosY % 2 == 0) and 0 or 1, -2 do
-      for x = Customize.Start.PosX, 199 do
-        local tile = GetTile(x, y)
-        if Plant then
-          -- Saat Plant, hitung jumlah pohon target yang SUDAH ada untuk tolok ukur perbandingan
-          if tile.fg == Customize.TreeID then
-            total = total + 1
-          end
-        else
-          -- Saat Harvest, fokus yg siap panen
-          if tile.fg == Customize.TreeID and IsReady(tile) then
-            total = total + 1
-          end
+        return Total
+    else
+        for y = Customize.Start.PosY, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
+            for x = Customize.Start.PosX, 199, 1 do
+                local tile = GetTile(x, y)
+                if (Plant and tile.fg == Customize.TreeID) or (Harvest and tile.fg == Customize.TreeID and IsReady(tile)) then
+                    TotalTree = TotalTree + 1
+                end
+            end
         end
-      end
+        return TotalTree
     end
-  end
-  return total
 end
 
 local function SendWebhook(url, data)
-  if not url or url == "" then return end
   MakeRequest(url, "POST", { ["Content-Type"] = "application/json" }, data)
 end
 
@@ -188,149 +182,164 @@ local function GetRemote()
 end
 
 ------------------------------------------------------------
---  MODE SWITCH (FIXED)
+--  MODE SWITCH
 ------------------------------------------------------------
 local UWSUsed = 0
-local function ChangeMode()
-  if Customize.Start.Mode:upper() == "PT" then
-    TextO("`4[`wDoctor`4] `0Mode: `2PLANT ONLY")
-    Plant  = true
-    Harvest= false
-    return
-  end
-
-  -- PTHT otomatis: cek siapa yg prioritas
-  if Plant then
-    -- baru selesai Plant → cek apakah semua slot sudah tertanam?
-    Plant = false
-    local haveTrees = GetTree("b")
-    local missing   = GetTree("a")
-    if haveTrees >= missing then
-      UWSUsed = UWSUsed + 1
-      TextO("`oTotal `2Used `c" .. UWSUsed .. " UWS")
-      SendPacket(2, "action|dialog_return\ndialog_name|ultraworldspray")
-      SleepSafe(5600)
-      TextO("`4[`wDoctor`4] Harvest `0Mode")
-      Harvest = true
-    else
-      TextO("`9Scanning `4Missing `0Plant")
-      Plant   = true
-      Harvest = false
+function ChangeMode()
+if Customize.Start.Mode:upper() == "PT" then
+        TextO("`4[`wDoctor`4] `0Mode: `2PLANT ONLY")
+        Plant = true
+        Harvest = false
+        return
     end
-  else
-    -- baru selesai Harvest → cek apakah masih ada pohon yang belum tertanam
-    Harvest = false
-    local missing   = GetTree("a")
-    local haveTrees = GetTree("b")
-    if missing <= haveTrees then
-      TextO("`4[`wDoctor`4] Plant `0Mode")
-      Plant = true
-    else
-      TextO("`9Scanning `4Missing `0Harvest")
-      Harvest = true
-    end
-  end
-end
 
+       if Plant then
+           Plant = false
+           if GetTree("b") >= GetTree("a") then
+               UWSUsed = UWSUsed + 1
+               TextO("`oTotal `2Used `c" .. UWSUsed .. " UWS")
+               SendPacket(2, "action|dialog_return\ndialog_name|ultraworldspray")
+               Sleep(5600)
+               TextO("`4[`wDoctor`4] Harvest `0Mode")
+               Harvest = true
+           else
+               TextO("`9Scanning `4Missing `0Plant")
+               Plant = true
+           end
+           TotalTree = 0
+       else
+           Harvest = false
+           if GetTree("a") >= GetTree("b") then
+               TextO("`4[`wDoctor`4] Plant `0Mode")
+               Plant = true
+           else
+               TextO("`9Scanning `4Missing `0Harvest")
+               Harvest = true
+           end
+           TotalTree = 0
+       end
+   end
 ------------------------------------------------------------
 --  ROTATION
 ------------------------------------------------------------
-local function Rotation()
-  if ShouldStop() or not pt_running then return end
-
-  local function step(x, y, head)
-    local tile = GetTile(x, y)
-    if (Plant and tile.fg == 0) or (Harvest and tile.fg == Customize.TreeID and IsReady(tile)) then
-      Raw(0, head, 0, x, y)
-      SleepSafe((Plant and Customize.Delay.Plant or Customize.Delay.Harvest) * 10)
-      Raw(3, head, (Plant and 5640 or 18), x, y)
-      if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then return true end
-
-      local py = math.min(y + 2, Customize.Start.PosY)
-      if Plant then
-        if GetTile(x, py).fg == Customize.TreeID then
-          Limiter = 0
-        else
-          Limiter = Limiter + 1
+function Rotation()    
+    if Customize.Other.ModePlant:lower() == "left" then
+      if ShouldStop() or not pt_running then return end
+        for x = 199, Customize.Start.PosX, Customize.Other.Mray and -10 or -1 do
+            if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then
+                return
+            end
+            LogToConsole("`9 " .. os.date("%H:%M:%S") .. " `0[`4Doctor`0] `cCurrently `0" .. (Plant and "Planting" or "Harvest") .. " `4On `9X `8: `2" .. x)
+            for Loop = 1, 2, 1 do
+                for y = Customize.Start.PosY, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
+                    if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then
+                        return
+                    end
+                    local tile = GetTile(x, y)
+                    if (Plant and tile.fg == 0) or (Harvest and tile.fg == Customize.TreeID and IsReady(tile)) then
+                        Raw(0, 48, 0, x, y)
+                        Sleep(Plant and Customize.Delay.Plant * 10 or Customize.Delay.Harvest * 5)
+                        Raw(3, 48, Plant and 5640 or 18, x, y)
+                        if GetWorld() == nil or GetWorld().name ~= World  or RemoteEmpty then
+                            return
+                        end
+                        local py = math.min(y + 2, Customize.Start.PosY)
+                        if Plant then
+                            if GetTile(x, py).fg == Customize.TreeID then
+                                Limiter = 0
+                            else
+                                Limiter = Limiter + 1
+                            end
+                        end
+                    end
+                    if Limiter >= Customize.Magplant.Limit then
+                        local Magplant = GetMagplant()
+                        Current = Current % #Magplant + 1
+                        Limiter = 0
+                        RemoteEmpty = true
+                        return
+                    end
+                end
+            end
         end
-      end
-    end
-
-    if Limiter >= Customize.Magplant.Limit then
-      local Magplant = GetMagplant()
-      if #Magplant > 0 then
-        Current = (Current % #Magplant) + 1
-      end
-      Limiter = 0
-      RemoteEmpty = true
-      return true
-    end
-    return false
-  end
-
-  local goLeft  = Customize.Other.ModePlant:lower() == "left"
-  local goRight = Customize.Other.ModePlant:lower() == "right"
-
-  if goLeft then
-    for x = 199, Customize.Start.PosX, (Customize.Other.Mray and -10 or -1) do
-      if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then return end
-      LogToConsole("`9 " .. os.date("%H:%M:%S") .. " `0[`4Doctor`0] `cCurrently `0" .. (Plant and "Planting" or "Harvest") .. " `4On `9X `8: `2" .. x)
-      for _ = 1, 2 do
-        for y = Customize.Start.PosY, (Customize.Start.PosY % 2 == 0) and 0 or 1, -2 do
-          if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then return end
-          if step(x, y, 48) then return end
+    else
+        if Customize.Other.ModePlant:lower() == "right" then
+        if ShouldStop() or not pt_running then return end
+            for x = Customize.Start.PosX, 199, Customize.Other.Mray and 10 or 1 do
+                if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then
+                    return
+                end
+                LogToConsole("`9 " .. os.date("%H:%M:%S") .. " `0[`4Doctor`0] `cCurrently `0" .. (Plant and "Planting" or "Harvest") .. " `4On `9X `8: `2" .. x)
+                for Loop = 1, 2, 1 do
+                    for y = Customize.Start.PosY, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
+                        if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then
+                            return
+                        end
+                        local tile = GetTile(x, y)
+                        if (Plant and tile.fg == 0) or (Harvest and tile.fg == Customize.TreeID and IsReady(tile)) then
+                            Raw(0, 32, 0, x, y)
+                            Sleep(Plant and Customize.Delay.Plant * 10 or Customize.Delay.Harvest * 5)
+                            Raw(3, 32, Plant and 5640 or 18, x, y)
+                            if GetWorld() == nil or GetWorld().name ~= World  or RemoteEmpty then
+                                return
+                            end
+                            local py = math.min(y + 2, Customize.Start.PosY)
+                            if Plant then
+                                if GetTile(x, py).fg == Customize.TreeID then
+                                    Limiter = 0
+                                else
+                                    Limiter = Limiter + 1
+                                end
+                            end
+                        end
+                        if Limiter >= Customize.Magplant.Limit then
+                            local Magplant = GetMagplant()
+                            Current = Current % #Magplant + 1
+                            Limiter = 0
+                            RemoteEmpty = true
+                            return
+                        end
+                    end
+                end
+            end
         end
-      end
     end
-  elseif goRight then
-    for x = Customize.Start.PosX, 199, (Customize.Other.Mray and 10 or 1) do
-      if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then return end
-      LogToConsole("`9 " .. os.date("%H:%M:%S") .. " `0[`4Doctor`0] `cCurrently `0" .. (Plant and "Planting" or "Harvest") .. " `4On `9X `8: `2" .. x)
-      for _ = 1, 2 do
-        for y = Customize.Start.PosY, (Customize.Start.PosY % 2 == 0) and 0 or 1, -2 do
-          if GetWorld() == nil or GetWorld().name ~= World or RemoteEmpty then return end
-          if step(x, y, 32) then return end
-        end
-      end
+
+    if GetWorld() == nil or GetWorld().name ~= World then
+        return
     end
-  end
-
-  if GetWorld() == nil or GetWorld().name ~= World then
-    return
-  end
-
-  PTHT = PTHT + 1
-  ChangeMode()
+    
+    PTHT = PTHT + 1
+    ChangeMode()
 end
-
 ------------------------------------------------------------
 --  RECONNECT
 ------------------------------------------------------------
-local function Reconnect()
+function Reconnect()
   if ShouldStop() or not pt_running then return end
-  if GetWorld() == nil or WorldName() ~= World then
-    SendPacket(3, "action|join_request\nname|"..World.."|\ninvitedWorld|0")
-    TextO("`0Entering `4World `0: `e"..World)
-    SleepSafe(Customize.Delay.entering * 100)
-    RemoteEmpty = true
-  else
-    if RemoteEmpty then
-      TextO("`wTaking `4Remote")
-      GetRemote()
-      RemoteEmpty = false
-    end
-    Rotation()
-  end
-end
+       if GetWorld() == nil or GetWorld().name ~= World then
+           SendPacket(3, "action|join_request\nname|" .. World .. "|\ninvitedWorld|0")
+           TextO("`0Entering `4World `0: `e" .. World)
+           SleepSafe(Customize.Delay.entering * 100)
+           RemoteEmpty = true
+       else
+           if RemoteEmpty then
+               TextO("`wTaking `4Remote")
+               GetRemote()
+               RemoteEmpty = false
+           end
+           Rotation()
+       end
+   end
 
 ------------------------------------------------------------
 -- WEBHOOK
 ------------------------------------------------------------
 local function allbout(tis)
-  local days    = math.floor(tis / 86400)
-  local hours   = math.floor((tis % 86400) / 3600)
-  local minutes = math.floor((tis % 3600) / 60)
-  local seconds = tis % 60
+  local days   = math.floor(tis / 86400)
+  local hours  = math.floor((tis % 86400) / 3600)
+  local minutes= math.floor((tis % 3600) / 60)
+  local seconds= tis % 60
   return days, hours, minutes, seconds
 end
 
@@ -338,7 +347,7 @@ local start_ts = os.time()
 
 local function ahUh()
   local tis = os.time() - start_ts
-  local nps = (siz(GetLocal().name):match("%S+") or GetLocal().name)
+  local nps = siz(GetLocal().name):match("%S+") or GetLocal().name
   local stk = iv(12600)
   local d,h,m,s = allbout(tis)
 
@@ -368,7 +377,7 @@ end
 
 local function ahHa()
   local tis = os.time() - start_ts
-  local npp = (siz(GetLocal().name):match("%S+") or GetLocal().name)
+  local npp = siz(GetLocal().name):match("%S+") or GetLocal().name
   local stk = iv(12600)
   local d,h,m,s = allbout(tis)
 
@@ -397,12 +406,18 @@ local function ahHa()
   SendWebhook(Customize.Other.WebHooks, payload)
 end
 
+
+  if Customize.Start.Mode:upper() == "PT" then
+    Plant, Harvest = true, false
+  elseif Customize.Start.Mode:upper() == "PTHT" then
+    Plant, Harvest = true, false
+  else
+    Plant, Harvest = false, true
+end
 ------------------------------------------------------------
---  RUNTHREAD + GUI
 ------------------------------------------------------------
 RunThread(function()
-  -- Banner
-  local ps = [[set_default_color||
+    local ps = [[set_default_color||
 add_label_with_icon|big|`oWelcome|left|2480|
 add_textbox|   `oThanks for Using PTHT|
 add_spacer|small|
@@ -411,63 +426,65 @@ add_space|big|
 add_textbox|`bPowered By Doctor|
 end_dialog|c|Exit|
 add_quick_exit||]]
-  SendVariantList{[0] = "OnDialogRequest", [1] = ps}
+    SendVariantList{[0] = "OnDialogRequest", [1] = ps}
 
-  -- Init mode
-  if Customize.Start.Mode:upper() == "PT" then
-    Plant, Harvest = true, false
-  elseif Customize.Start.Mode:upper() == "PTHT" then
-    Plant, Harvest = true, false
-  else
-    Plant, Harvest = false, true
-  end
-
-  -- Info awal
-  for i = 1, 2 do
-    if not SleepSafe(1000) then break end
-    SendPacket(2, "action|input\n|text|`8[  `4PtHt Doctor`8] `cCount `w"..Customize.Start.Mode.." `c"..tostring(Customize.Start.Loop).." `4Mode: `9"..Customize.Other.ModePlant:upper())
-  end
-
-  -- Main supervisor loop
-  while pt_alive do
-    if ShouldStop() then break end
-
-    if pt_running then
-      World = WorldName()
-
-      if Customize.Start.Loop == "unli" then
-        Reconnect()
-        ahUh()
-      elseif type(Customize.Start.Loop) == "number" then
-        Reconnect()
-        if (PTHT // 2) + 1 == Customize.Start.Loop then
-          Rotation()
-          ahHa()
-          SendPacket(2, "action|input\ntext|`4[`0PTHT`4] `bFINISHED `c"..(PTHT // 2 + 1).." `4LEAVE `9WORLD")
-          LogToConsole("`9Your job PTHT DONE")
-          SleepSafe(7000)
-          SendPacket(3, "action|join_request\nname|EXIT|\ninvitedWorld|0")
-          pt_running = false
-        elseif PTHT % 2 ~= 0 then
-          SendPacket(2, "action|input\ntext|`4[`2PTHT`4] `0[ `cRotation `4: `9"..(PTHT // 2 + 1).." `b/ `9"..tostring(Customize.Start.Loop).." (wink) `w]")
-          SleepSafe(4000)
-          ahUh()
-          local remaining = Customize.Start.Loop - (PTHT // 2 + 1)
-          SendPacket(2, "action|input\n|text|`0SISA PTHT  (halo) `4= `4[`9"..tostring(remaining).."`4] (troll)")
-          SleepSafe(6000)
-        end
-      end
-    else
-      SleepSafe(150)
+    -- Pesan awal
+    for i = 1, 2 do
+        if not SleepSafe(1000) then break end
+        SendPacket(2, "action|input\n|text|`8[  `4PtHt Doctor`8] `cCount `w"
+            ..Customize.Start.Mode.." `c"..tostring(Customize.Start.Loop)
+            .." `4Mode: `9"..Customize.Other.ModePlant:upper())
     end
-  end
 
-  pt_alive   = false
-  pt_running = false
-  ui_visible = false
-  TextO("`4[PTHT] Terminated by HUB/GUI.")
+    -- 🔁 Main Loop
+    while pt_alive do
+        if ShouldStop() then break end
+
+        if pt_running then
+            World = WorldName()
+
+            if Customize.Start.Loop == "unli" then
+                -- mode unli → selalu jalan
+                Reconnect()
+                -- ahUh() -- webhook status kalau mau aktifkan
+            elseif type(Customize.Start.Loop) == "number" then
+                -- mode dengan jumlah loop
+                Reconnect()
+
+                -- cek apakah sudah selesai
+                if (PTHT // 2) + 1 == Customize.Start.Loop then
+                    Rotation() -- cycle terakhir
+                    -- ahHa() -- webhook selesai kalau mau aktifkan
+                    SendPacket(2, "action|input\ntext|`4[`0PTHT`4] `bFINISHED `c"
+                        ..(PTHT // 2 + 1).." `4LEAVE `9WORLD")
+                    LogToConsole("`9Your job PTHT DONE")
+                    SleepSafe(7000)
+                    SendPacket(3, "action|join_request\nname|EXIT|\ninvitedWorld|0")
+                    pt_running = false -- auto stop
+                elseif PTHT % 2 ~= 0 then
+                    -- tiap selesai 1x Rotation (Plant/Harvest)
+                    SendPacket(2, "action|input\ntext|`4[`2PTHT`4] `0[ `cRotation `4: `9"
+                        ..(PTHT // 2 + 1).." `b/ `9"..tostring(Customize.Start.Loop).." (wink) `w]")
+                    SleepSafe(4000)
+
+                    local remaining = Customize.Start.Loop - (PTHT // 2 + 1)
+                    SendPacket(2, "action|input\n|text|`0SISA PTHT (halo) `4= `4[`9"
+                        ..tostring(remaining).."`4] (troll)")
+                    SleepSafe(6000)
+                end
+            end
+        else
+            -- kalau lagi idle
+            SleepSafe(150)
+        end
+    end
+
+    -- kalau loop selesai/berhenti
+    pt_alive   = false
+    pt_running = false
+    ui_visible = false
+    TextO("`4[PTHT] Terminated by HUB/GUI.")
 end)
-
 ------------------------------------------------------------
 --  IMGUI CONTROLLER (AddHook)
 ------------------------------------------------------------
@@ -481,37 +498,40 @@ AddHook("OnDraw", "PTHT_GUI", function()
     -- TAB MAIN
     ----------------------------------------------------
     if ImGui.BeginTabItem(" Main") then
-      if not pt_running then
-        if ImGui.Button("▶ Start PTHT", 140, 32) then
-          if not pt_running then
-            World = WorldName()
-            pt_running = true
-            TextO("`2[PTHT] Started.")
-          end
+        if not pt_running then
+      if ImGui.Button("▶ Start PTHT", 140, 32) then
+        if not pt_running then
+          World = WorldName()
+          pt_running = true
+          TextO("`2[PTHT] Started.")
         end
-        ImGui.SameLine()
+      end
+
+      ImGui.SameLine()
         if ImGui.Button("❌ Tutup GUI", 288, 32) then
-          pt_running = false
-          ui_visible = false
-          _G.shouldStop = true
-          TextO("`4[PTHT] Terminate requested.")
+        pt_running = false
+        ui_visible = false
+        _G.shouldStop = true
+        TextO("`4[PTHT] Terminate requested.")
         end
       else
-        if ImGui.Button("⏹ Stop PTHT", 140, 32) then
-          if pt_running then
-            pt_running = false
-            TextO("`e[PTHT] Paused. Thread alive.")
-          end
+      if ImGui.Button("⏹ Stop PTHT", 140, 32) then
+        if pt_running then
+          pt_running = false
+          TextO("`e[PTHT] Paused. Thread alive.")
         end
-        ImGui.SameLine()
-        ImGui.BeginDisabled(true); ImGui.Button("Tutup GUI"); ImGui.EndDisabled()
+      end
+ImGui.SameLine()
+          ImGui.BeginDisabled(true); ImGui.Button("Tutup GUI"); ImGui.EndDisabled()
       end
 
       ImGui.Separator()
+      -- World & Posisi
       ImGui.Text("World : "..World)
       if ImGui.Button(" Set Pos dari Player") then
         local me, w = GetLocal(), GetWorld()
         if me and w then
+  
           Customize.Start.PosY = me.pos.y // 32
           World = w.name
           TextO("✅ Posisi & World diset dari player: ("..Customize.Start.PosX..","..Customize.Start.PosY..") @"..World)
@@ -520,9 +540,11 @@ AddHook("OnDraw", "PTHT_GUI", function()
         end
       end
 
+      -- Webhook
       _, Customize.Other.WebHooks = ImGui.InputText("Webhook URL", Customize.Other.WebHooks, 256)
 
       ImGui.Separator()
+      -- Status
       ImGui.Text("📊 Status Info")
       ImGui.Text("World     : "..World)
       ImGui.Text("Mode      : "..Customize.Start.Mode)
@@ -536,8 +558,10 @@ AddHook("OnDraw", "PTHT_GUI", function()
     -- TAB SETTINGS
     ----------------------------------------------------
     if ImGui.BeginTabItem("Settings") then
+      -- Tree ID
       _, Customize.TreeID = ImGui.InputInt("Tree ID", Customize.TreeID)
 
+      -- Mode dropdown
       local modes = {"PT", "PTHT"}
       local currentMode = 1
       for i, v in ipairs(modes) do
@@ -552,17 +576,22 @@ AddHook("OnDraw", "PTHT_GUI", function()
         ImGui.EndCombo()
       end
 
+      -- Loop Count
       _, Customize.Start.Loop = ImGui.InputInt("Loop Count", Customize.Start.Loop)
 
+      -- Posisi Manual
       _, Customize.Start.PosX = ImGui.InputInt("Pos X", Customize.Start.PosX)
       _, Customize.Start.PosY = ImGui.InputInt("Pos Y", Customize.Start.PosY)
 
+      -- Delay
       _, Customize.Delay.Harvest  = ImGui.InputInt("Delay Harvest",  Customize.Delay.Harvest)
       _, Customize.Delay.entering = ImGui.InputInt("Delay Entering", Customize.Delay.entering)
       _, Customize.Delay.Plant    = ImGui.InputInt("Delay Plant",    Customize.Delay.Plant)
 
+      -- Discord
       _, Customize.Other.DiscordID = ImGui.InputText("Discord ID", Customize.Other.DiscordID, 64)
 
+      -- ModePlant dropdown
       local plantModes = {"left", "right"}
       local currentPlantMode = 1
       for i, v in ipairs(plantModes) do
@@ -578,6 +607,8 @@ AddHook("OnDraw", "PTHT_GUI", function()
       end
 
       _, Customize.Other.Mray = ImGui.Checkbox("Use Mray", Customize.Other.Mray)
+
+      -- Magplant
       _, Customize.Magplant.Limit = ImGui.InputInt("Magplant Limit", Customize.Magplant.Limit)
       _, Customize.Magplant.bcg   = ImGui.InputInt("Magplant BG",    Customize.Magplant.bcg)
 

@@ -441,7 +441,7 @@ add_quick_exit||]]
         if ShouldStop() then break end
 
         if pt_running then
-            World = WorldName()
+            
 
             if Customize.Start.Loop == "unli" then
                 Reconnect()

@@ -219,7 +219,6 @@ if Customize.Start.Mode:upper() == "PT" then
 ------------------------------------------------------------
 --  ROTATION
 ------------------------------------------------------------
-local function Rotation()
 function Rotation()    
     if Customize.Other.ModePlant:lower() == "left" then
       if ShouldStop() or not pt_running then return end

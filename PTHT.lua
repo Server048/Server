@@ -135,42 +135,30 @@ local function GetMagplant()
   return Found
 end
 
-local function GetTree(mode)
-    if mode == "a" then
-        -- Hitung slot tanam yang KOSONG
-        local empty = 0
-        for y = Customize.Start.PosY, (Customize.Start.PosY % 2 == 0) and 0 or 1, -2 do
-            for x = Customize.Start.PosX, 199 do
-                local t = GetTile(x, y)
-                if t.fg == 0 then
-                    empty = empty + 1
+local TotalTree = 0
+function GetTree(str)
+    if str == a then
+        local Total = 0
+        for y = Customize.Start.PosY + 1, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
+            for x = Customize.Start.PosX, 199, 1 do
+                if GetTile(x, y).fg ~= Customize.TreeID then
+                    Total = Total + 1
                 end
             end
         end
-        return empty
-
-    elseif mode == "b" then
-        -- Hitung jumlah tanaman (atau siap panen)
-        local count = 0
-        for y = Customize.Start.PosY, (Customize.Start.PosY % 2 == 0) and 0 or 1, -2 do
-            for x = Customize.Start.PosX, 199 do
-                local t = GetTile(x, y)
-                if Plant then
-                    if t.fg == Customize.TreeID then
-                        count = count + 1
-                    end
-                else -- Harvest mode
-                    if t.fg == Customize.TreeID and IsReady(t) then
-                        count = count + 1
-                    end
+        return Total
+    else
+        for y = Customize.Start.PosY, Customize.Start.PosY % 2 == 0 and 0 or 1, -2 do
+            for x = Customize.Start.PosX, 199, 1 do
+                local tile = GetTile(x, y)
+                if (Plant and tile.fg == Customize.TreeID) or (Harvest and tile.fg == Customize.TreeID and IsReady(tile)) then
+                    TotalTree = TotalTree + 1
                 end
             end
         end
-        return count
+        return TotalTree
     end
-    return 0
 end
-
 
 local function SendWebhook(url, data)
   MakeRequest(url, "POST", { ["Content-Type"] = "application/json" }, data)
@@ -194,40 +182,40 @@ end
 --  MODE SWITCH
 ------------------------------------------------------------
 local UWSUsed = 0
-local function ChangeMode()
-    -- Plant only (mode PT)
-    if Customize.Start.Mode:upper() == "PT" then
+function ChangeMode()
+if Customize.Start.Mode:upper() == "PT" then
         TextO("`4[`wDoctor`4] `0Mode: `2PLANT ONLY")
-        Plant, Harvest = true, false
+        Plant = true
+        Harvest = false
         return
     end
 
-    -- Normal PTHT
-    if Plant then
-        -- cek: kalau semua slot sudah tertanam → UWS
-        if GetTree("a") == 0 then
-            UWSUsed = UWSUsed + 1
-            TextO("`oTotal `2Used `c"..UWSUsed.." UWS")
-            SendPacket(2, "action|dialog_return\ndialog_name|ultraworldspray")
-            SleepSafe(5600)
-
-            TextO("`4[`wDoctor`4] Harvest `0Mode")
-            Plant, Harvest = false, true
-        else
-            TextO("`9Scanning `4Missing `0Plant")
-        end
-
-    elseif Harvest then
-        -- kalau sudah tidak ada yg bisa dipanen → balik tanam
-        if GetTree("b") == 0 then
-            TextO("`4[`wDoctor`4] Plant `0Mode")
-            Plant, Harvest = true, false
-        else
-            TextO("`9Still harvesting…")
-        end
-    end
-end
-
+       if Plant then
+           Plant = false
+           if GetTree("b") >= GetTree("a") then
+               UWSUsed = UWSUsed + 1
+               TextO("`oTotal `2Used `c" .. UWSUsed .. " UWS")
+               SendPacket(2, "action|dialog_return\ndialog_name|ultraworldspray")
+               Sleep(5600)
+               TextO("`4[`wDoctor`4] Harvest `0Mode")
+               Harvest = true
+           else
+               TextO("`9Scanning `4Missing `0Plant")
+               Plant = true
+           end
+           TotalTree = 0
+       else
+           Harvest = false
+           if GetTree("a") >= GetTree("b") then
+               TextO("`4[`wDoctor`4] Plant `0Mode")
+               Plant = true
+           else
+               TextO("`9Scanning `4Missing `0Harvest")
+               Harvest = true
+           end
+           TotalTree = 0
+       end
+   end
 ------------------------------------------------------------
 --  ROTATION
 ------------------------------------------------------------

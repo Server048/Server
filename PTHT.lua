@@ -47,7 +47,7 @@ _G.shouldStop     = _G.shouldStop or false  -- sinyal global dari HUB
 
 -- counter/aset
 local PTHT      = 0
-local Limiter   = 0
+local Limiter   = 200
 local Current   = 1
 local iM        = 0
 local RemoteEmpty, Plant, Harvest = true, true, false
@@ -111,8 +111,11 @@ local function iv(id)
 end
 
 local TotalTree = 0
-local function IsReady(tile)
-  return tile and tile.extra and tile.extra.progress == 1
+function IsReady(tile)
+    if tile and tile.extra and tile.extra.progress and tile.extra.progress == 1 then
+        return true
+    end
+    return false
 end
 
 local function siz(str) -- Credit AsleepDream

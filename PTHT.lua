@@ -445,12 +445,12 @@ add_quick_exit||]]
 
       if Customize.Start.Loop == "unli" then
         Reconnect()
-        ahUh()
+      --  ahUh()
       elseif type(Customize.Start.Loop) == "number" then
         Reconnect()
         if (PTHT // 2) + 1 == Customize.Start.Loop then
           Rotation()
-          ahHa()
+         -- ahHa()
           SendPacket(2, "action|input\ntext|`4[`0PTHT`4] `bFINISHED `c"..(PTHT // 2 + 1).." `4LEAVE `9WORLD")
           LogToConsole("`9Your job PTHT DONE")
           SleepSafe(7000)
@@ -459,7 +459,7 @@ add_quick_exit||]]
         elseif PTHT % 2 ~= 0 then
           SendPacket(2, "action|input\ntext|`4[`2PTHT`4] `0[ `cRotation `4: `9"..(PTHT // 2 + 1).." `b/ `9"..tostring(Customize.Start.Loop).." (wink) `w]")
           SleepSafe(4000)
-          ahUh()
+         -- ahUh()
           -- sisa PTHT
           local remaining = Customize.Start.Loop - (PTHT // 2 + 1)
           SendPacket(2, "action|input\n|text|`0SISA PTHT  (halo) `4= `4[`9"..tostring(remaining).."`4] (troll)")

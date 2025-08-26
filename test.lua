@@ -82,22 +82,22 @@ local function autoRejoin()
   local ok, wr = pcall(GetWorld)
   if not ok or type(wr) ~= "table" then
     overlayText("`4[Rejoin] World context invalid, rejoin `"..world_name.."`")
-    Sleep(1500)
+    Sleep(15000)
     wJ(world_name)
-    Sleep(3000)
+    Sleep(15000)
     return
   end
   local cur = wr.name or ""
   if cur == nil or cur == "" then
     overlayText("`4[Rejoin] Detected out of world, rejoining `"..world_name.."` ...")
-    Sleep(1500)
+    Sleep(15000)
     wJ(world_name)
-    Sleep(3000)
+    Sleep(15000)
   elseif cur ~= world_name then
     overlayText("`e[Warning] You are in `"..cur.."`, expected `"..world_name.."`. Rejoining...")
-    Sleep(1500)
+    Sleep(15000)
     wJ(world_name)
-    Sleep(3000)
+    Sleep(15000)
   end
 end
 
@@ -112,7 +112,7 @@ end
 local function ErrorD(tagmsg)
   overlayText("`8"..tagmsg.."`7: reconnect check...")
   autoRejoin()
-  Sleep(2000)
+  Sleep(15000)
 end
 
 local function sSendPacketRaw(typ, pkt)

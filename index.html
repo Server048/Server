@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lua Sandbox Docs & Playground</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<style>
+body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fafafa;}
+h1, h2, h3 { color: #222; }
+#editor { height: 300px; border: 1px solid #ccc; }
+button { margin: 12px 0; padding: 8px 16px; cursor: pointer;}
+#output { background: #000; color: #0f0; padding: 10px; height: 200px; overflow-y: auto; white-space: pre-wrap; }
+section { margin-bottom: 32px; }
+</style>
+</head>
+<body>
+
+<h1>Lua Sandbox Docs & Live Playground</h1>
+
+<section>
+<h2>📘 Documentation</h2>
+
+<h3>Logging</h3>
+<pre><code>log("Hello from my script")</code></pre>
+
+<h3>Task Control</h3>
+<pre><code>
+sleep(ms)       -- pause execution safely
+yield()         -- check for stop
+stop()          -- stop immediately
+isRunning()     -- returns true if still running
+</code></pre>
+
+<h3>Hook System</h3>
+<pre><code>
+AddHook(type, id, callback)
+__removeAllHooks()
+</code></pre>
+
+<h3>File Writing</h3>
+<pre><code>write(path, text)</code></pre>
+</section>
+
+<section>
+<h2>🧪 Live Lua Script</h2>
+<textarea id="luaCode">
+-- Contoh Script Sandbox Lua
+
+function main()
+    log("Lua script started!")
+
+    AddHook("Tick", "TestHook", function()
+        if not isRunning() then return end
+        log("TestHook running...")
+    end)
+
+    for i = 1, 5 do
+        log("Loop: " .. i)
+        sleep(500)
+    end
+end
+</textarea>
+
+<button onclick="runLua()">Run Lua</button>
+
+<h3>Output:</h3>
+<div id="output"></div>
+</section>
+
+<!-- Fengari Runtime -->
+<script src="https://unpkg.com/fengari-web/dist/fengari-web.js"></script>
+
+<script>
+// Helper for logging into output div
+const out = document.getElementById('output');
+function addOutput(txt){
+    out.textContent += txt + "\n";
+}
+
+// Map sandbox API into Lua globals
+function exposeSandbox(L) {
+    const js = fengari.interop.tojs(L);
+    js.global.log = (msg) => addOutput("[Lua] " + msg);
+    js.global.sleep = (ms) => addOutput("[Lua sleep] " + ms + "ms");
+    js.global.isRunning = () => true;
+    js.global.AddHook = (type, id, fn) => addOutput("[Lua Hook] " + type + "::" + id);
+    js.global.__removeAllHooks = () => addOutput("[Lua remove hooks]");
+}
+
+// Run Lua
+function runLua(){
+    out.textContent = ""; // clear output
+    const code = document.getElementById('luaCode').value;
+
+    try {
+        fengari.load(`return function()
+            ${code}
+            if main then main() end
+        end`)();
+        const L = fengari.L;
+        exposeSandbox(L);
+        fengari.lua.lua_call(L, 0, 0);
+    } catch (e){
+        addOutput("Error: " + e.message);
+    }
+}
+
+</script>
+
+</body>
+</html>
